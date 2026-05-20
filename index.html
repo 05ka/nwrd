@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="darkreader-lock">
   <title>Radio Arkana · Tarot Underground · Málaga</title>
   <meta name="description" content="Emisión binaural en directo. Letanía Arkana generada con aleatoriedad cuántica. Tarot Underground desde Málaga.">
 
@@ -220,6 +221,34 @@
     body::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 72% 38% at 50% 51%, rgba(230,48,48,0.06) 0%, transparent 68%); opacity: 0; will-change: opacity; }
     .marquee-wrap.trio-mode { overflow: visible; }
     .marquee-wrap.trio-mode .marquee-text { animation: none; transform: none; display: block; white-space: normal; font-size: 10px; letter-spacing: 0.26em; color: var(--white); text-align: center; transition: opacity 0.4s; }
+
+    /* ── HINTS de gestos ocultos (sólo primera sesión) ────────────────── */
+    .arkana-hint {
+      font-family: var(--font-body);
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gray);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      white-space: nowrap;
+      text-align: center;
+      margin-top: -22px;
+      margin-bottom: 18px;
+      height: 0;
+      overflow: visible;
+    }
+    .arkana-hint.visible { opacity: 0.65; }
+    .arkana-hint::before { content: '·'; margin-right: 6px; color: var(--red); }
+    .title-block .arkana-hint {
+      position: absolute;
+      bottom: -16px;
+      left: 0;
+      margin: 0;
+      height: auto;
+    }
+    .title-block { position: relative; }
     .marquee-wrap.trio-mode .marquee-text.fading { opacity: 0; }
     body.deep-listen { background: #030303 !important; }
     body.deep-listen .wrap { opacity: 0; pointer-events: none; transition: opacity 0.7s ease; }
@@ -445,12 +474,14 @@
     <!-- ── TITLE BLOCK con micro-trio ── -->
     <div class="title-block">
       <h1 class="station-name" id="stationName" title="Doble tap: escucha profunda">RADIO<br><span>ARKANA</span></h1>
-      <div class="micro-trio hidden-by-user" id="microTrio"></div>
+      <div class="micro-trio" id="microTrio"></div>
+      <div class="arkana-hint" id="hintDeepListen" aria-hidden="true">doble tap · escucha profunda</div>
     </div>
     <p class="tagline">Tarot Underground · Málaga</p>
     <div class="marquee-wrap">
       <span class="marquee-text" id="marqueeText">"For those Dark Horses with the Spirit to look up and see . . .  A recondite family awaits"       </span>
     </div>
+    <div class="arkana-hint" id="hintMarquee" aria-hidden="true">tap · tirada / mensaje</div>
     <div class="waveform" id="waveform"></div>
     <div class="status-row">
       <span class="dot" id="dot"></span>
@@ -1653,8 +1684,13 @@
   }
 
   // Doble tap en micro-trio: toggle visibilidad
-  // El listener va en title-block para evitar problemas con pointer-events y overflow
-  let _microTapTimer = null, _microHidden = true;
+  // Por defecto VISIBLE — las cartas son uno de los assets más bonitos
+  // de la app, no deberían requerir un gesto oculto para revelarse.
+  // Persistimos la preferencia del usuario en localStorage.
+  let _microTapTimer = null;
+  let _microHidden = localStorage.getItem('arkana-micro-hidden') === '1';
+  // Aplicar estado inicial al DOM (por si el HTML llegó con la clase legada)
+  document.getElementById('microTrio')?.classList.toggle('hidden-by-user', _microHidden);
   const _titleBlock = document.querySelector('.title-block');
   if (_titleBlock) {
     _titleBlock.addEventListener('click', (e) => {
@@ -1665,6 +1701,7 @@
         clearTimeout(_microTapTimer); _microTapTimer = null;
         _microHidden = !_microHidden;
         document.getElementById('microTrio').classList.toggle('hidden-by-user', _microHidden);
+        localStorage.setItem('arkana-micro-hidden', _microHidden ? '1' : '0');
       } else {
         _microTapTimer = setTimeout(() => { _microTapTimer = null; }, 380);
       }
@@ -1750,7 +1787,7 @@
     if(currentTrio&&currentTrio.length===3) updateDeepTrio(currentTrio);
     else deepTrioEl.innerHTML='';
     deepExitHint.classList.remove('fade-out');
-    setTimeout(()=>deepExitHint.classList.add('fade-out'),3000);
+    setTimeout(()=>deepExitHint.classList.add('fade-out'),6000);
     if(!_deepSyncRaf)_deepSyncRaf=requestAnimationFrame(syncDeepBars);
     requestWakeLock&&requestWakeLock();
     document.querySelector('meta[name="theme-color"]').content='#030303';
@@ -1782,6 +1819,74 @@
   window._exitDeepListenFn  = () => { if(_deepListenActive) exitDeepListen(); };
   window._restoreMarqueeFn  = () => restoreMarquee();
   window._clearDeepTrioFn   = () => { renderDeepTrio([]); };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── ONBOARDING DE GESTOS (sólo primera sesión) ────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // Dos hints discretos para revelar los gestos ocultos más interesantes:
+  //   1. "tap · tirada / mensaje"          → tap en el marquee
+  //   2. "doble tap · escucha profunda"    → doble tap en RADIO ARKANA
+  // Aparecen sólo si no se han mostrado antes (localStorage). Cada uno se
+  // oculta cuando el usuario ejecuta el gesto correspondiente, o tras 7 s.
+  (function arkanaHintsOnboarding() {
+    if (localStorage.getItem('arkana-hints-seen') === '1') return;
+
+    const hintMarquee     = document.getElementById('hintMarquee');
+    const hintDeepListen  = document.getElementById('hintDeepListen');
+    if (!hintMarquee || !hintDeepListen) return;
+
+    let _shown = { marquee: false, deep: false };
+    let _hideTimers = {};
+
+    function showHint(key, el) {
+      if (_shown[key]) return;
+      _shown[key] = true;
+      el.classList.add('visible');
+      _hideTimers[key] = setTimeout(() => el.classList.remove('visible'), 7000);
+    }
+    function dismissHint(key, el) {
+      el.classList.remove('visible');
+      clearTimeout(_hideTimers[key]);
+      // Si ambos se han enseñado, no volver a mostrar nunca más.
+      if (_shown.marquee && _shown.deep) {
+        localStorage.setItem('arkana-hints-seen', '1');
+      }
+    }
+
+    // 1) Al primer click en marquee, ocultar el hint y marcarlo descubierto.
+    document.querySelector('.marquee-wrap')?.addEventListener('click', () => {
+      dismissHint('marquee', hintMarquee);
+    }, { once: true });
+
+    // 2) Al primer click en el stationName (doble-tap también dispara click),
+    //    ocultar el hint de escucha profunda.
+    document.getElementById('stationName')?.addEventListener('click', () => {
+      dismissHint('deep', hintDeepListen);
+    }, { once: true });
+
+    // Activador: cuando el usuario entre por primera vez a TTS — momento en
+    // que la app ya ha empezado a "hablar" y tiene sentido revelar los gestos.
+    const _origStartTTS = window.startTTS || null;
+    let _firstTTS = true;
+    function _onFirstTTS() {
+      if (!_firstTTS) return;
+      _firstTTS = false;
+      setTimeout(() => showHint('marquee', hintMarquee), 4000);
+      setTimeout(() => showHint('deep',    hintDeepListen), 14000);
+      // Tras 25 s ya hemos mostrado todo; persistimos.
+      setTimeout(() => localStorage.setItem('arkana-hints-seen', '1'), 25000);
+    }
+    // Polling ligero porque startTTS es declaración local del script;
+    // monitorizamos currentMode hasta que aparezca TTS.
+    const _poll = setInterval(() => {
+      if (typeof currentMode === 'string' && currentMode === 'TTS') {
+        clearInterval(_poll);
+        _onFirstTTS();
+      }
+    }, 500);
+    // Tope: dejar de polear tras 5 min sin TTS.
+    setTimeout(() => clearInterval(_poll), 300000);
+  })();
 
 </script>
 <script src="/arkana-hand.js" defer></script>
