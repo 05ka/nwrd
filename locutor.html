@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <title>Radio Arkana · Cabina</title>
+  <link rel="icon" href="/icon-192.png" type="image/png">
+  <meta name="theme-color" content="#c8002a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:       #080808;
+      --surface:  #0f0f0f;
+      --border:   #1f1f1f;
+      --border2:  #2a2a2a;
+      --red:      #c8002a;
+      --red-glow: rgba(200,0,42,0.18);
+      --red-dim:  #5a0012;
+      --amber:    #d4860a;
+      --white:    #ede9e0;
+      --gray:     #4a4a4a;
+      --gray2:    #333;
+      --font-head: 'Bebas Neue', sans-serif;
+      --font-body: 'Space Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--font-body);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .shell {
+      width: min(440px, 94vw);
+      position: relative;
+      z-index: 2;
+      animation: fade-up 0.5s ease-out both;
+    }
+
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .tape {
+      background: var(--red);
+      height: 4px;
+      width: 100%;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: none;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .on-air-badge {
+      background: var(--red);
+      color: #fff;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      padding: 3px 7px;
+      text-transform: uppercase;
+      display: none;
+    }
+
+    .on-air-badge.visible {
+      display: block;
+      animation: blink-badge 2s infinite;
+    }
+
+    @keyframes blink-badge {
+      0%,49%  { opacity: 1; }
+      50%,100%{ opacity: 0.3; }
+    }
+
+    .topbar-station {
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
+
+    .topbar-right {
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      color: var(--gray2);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: none;
+      padding: 32px 28px 28px;
+    }
+
+    .logo {
+      font-family: var(--font-head);
+      font-size: clamp(60px, 15vw, 84px);
+      line-height: 0.86;
+      letter-spacing: 0.01em;
+      color: var(--white);
+      margin-bottom: 6px;
+      user-select: none;
+    }
+
+    .logo em { color: var(--red); font-style: normal; }
+
+    .tagline {
+      font-size: 9px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 32px;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 0 24px;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .denied-msg {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--red-dim);
+      padding: 20px 0;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    .mic-notice {
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      color: var(--amber);
+      margin-bottom: 24px;
+      padding: 12px 14px;
+      border: 1px solid rgba(212,134,10,0.2);
+      background: rgba(212,134,10,0.04);
+      line-height: 1.6;
+    }
+
+    .field-label {
+      font-size: 8px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 8px;
+    }
+
+    .text-input {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      padding: 13px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 18px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .text-input::placeholder { color: var(--gray); }
+    .text-input:focus { border-color: var(--red); }
+    .text-input option { background: #111; color: var(--white); }
+
+    .btn-enter {
+      width: 100%;
+      background: var(--red);
+      border: none;
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      padding: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: opacity 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-enter::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background 0.15s;
+    }
+
+    .btn-enter:hover::after { background: rgba(255,255,255,0.07); }
+    .btn-enter:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .error-msg {
+      font-size: 8px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-top: 10px;
+      min-height: 12px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--gray);
+      flex-shrink: 0;
+      transition: background 0.4s, box-shadow 0.4s;
+    }
+
+    .dot.live {
+      background: var(--red);
+      box-shadow: 0 0 10px var(--red), 0 0 22px rgba(200,0,42,0.35);
+      animation: pulse-dot 1.6s ease-in-out infinite;
+    }
+
+    .dot.connecting {
+      background: var(--amber);
+      box-shadow: 0 0 8px var(--amber);
+      animation: pulse-dot 0.7s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%,100%{ opacity: 1; }
+      50%{ opacity: 0.3; }
+    }
+
+    .status-text {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+
+    .waveform {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      height: 30px;
+      margin-bottom: 24px;
+    }
+
+    .bar {
+      flex: 1;
+      background: var(--border2);
+      border-radius: 1px;
+      transition: height 0.07s ease-out, background 0.3s;
+      min-width: 2px;
+    }
+
+    .waveform.active .bar { background: var(--red); }
+
+    .section-label {
+      font-size: 8px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 10px;
+    }
+
+    .participants-list {
+      margin-bottom: 22px;
+      border: 1px solid var(--border);
+    }
+
+    .participant-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+    }
+
+    .participant-item:last-child { border-bottom: none; }
+
+    .p-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 6px var(--red);
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+
+    .p-dot.muted { background: var(--gray2); box-shadow: none; }
+    .p-name { flex: 1; }
+    .p-tag {
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn-ctrl {
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 13px 10px;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-ctrl:hover { border-color: var(--red); background: var(--red-glow); }
+
+    .btn-ctrl.muted {
+      border-color: var(--red);
+      color: var(--red);
+      background: rgba(200,0,42,0.08);
+    }
+
+    .btn-ctrl.leave { color: var(--gray); }
+    .btn-ctrl.leave:hover { border-color: var(--gray2); background: rgba(255,255,255,0.02); color: var(--white); }
+
+    #audioPrompt {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--red);
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      padding: 14px 28px;
+      z-index: 9000;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.15);
+      white-space: nowrap;
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #audioPrompt.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .footer {
+      border: 1px solid var(--border);
+      border-top: none;
+      padding: 10px 20px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .footer-note {
+      font-size: 8px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray2);
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="tape"></div>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <span id="onAirBadge" class="on-air-badge">ON AIR</span>
+      <span class="topbar-station">Radio Arkana · Cabina</span>
+    </div>
+    <span class="topbar-right">LOCUTOR</span>
+  </div>
+
+  <div class="card">
+    <div class="logo">RADIO<br><em>ARK</em>ANA</div>
+    <div class="tagline">Cabina de locutores · Tarot Underground</div>
+
+    <!-- PANTALLA: ACCESO DENEGADO -->
+    <div id="screenDenied" class="screen">
+      <div class="divider"></div>
+      <div class="denied-msg">Enlace no válido.<br>Contacta con el presentador.</div>
+    </div>
+
+    <!-- PANTALLA: ENTRADA -->
+    <div id="screenEntry" class="screen active">
+      <div class="divider"></div>
+      <div class="mic-notice">
+        ⚠ Debes permitir el acceso al micrófono para poder escuchar a los demás locutores.
+      </div>
+      <div class="field-label">Tu nombre en antena</div>
+      <input
+        id="nameInput"
+        class="text-input"
+        type="text"
+        placeholder="Introduce tu nombre..."
+        maxlength="40"
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button id="btnEnter" class="btn-enter">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+        Entrar a cabina
+      </button>
+      <div id="entryError" class="error-msg"></div>
+    </div>
+
+    <!-- PANTALLA: EN CABINA -->
+    <div id="screenStudio" class="screen">
+      <div class="status-row">
+        <div id="studioDot" class="dot connecting"></div>
+        <span id="studioStatus" class="status-text">Conectando...</span>
+      </div>
+
+      <div class="waveform" id="waveform"></div>
+
+      <div class="section-label">En cabina</div>
+      <div class="participants-list" id="participantsList"></div>
+
+      <div class="field-label">Salida de audio</div>
+      <select id="audioOutputSelect" class="text-input" style="cursor:pointer;margin-bottom:18px">
+        <option value="">— Dispositivo predeterminado —</option>
+      </select>
+
+      <div class="controls-grid">
+        <button id="btnMute" class="btn-ctrl">
+          <svg id="iconMic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          Silenciar
+        </button>
+        <button id="btnLeave" class="btn-ctrl leave">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Salir
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <span class="footer-note">radioarkana.com</span>
+    <span class="footer-note">Málaga · ES</span>
+  </div>
+</div>
+
+<!-- Banner desbloqueo audio (aparece solo si autoplay falla) -->
+<div id="audioPrompt">▶ Toca para activar el sonido</div>
+
+<!-- LiveKit Browser SDK — versión fija + SRI.
+     Para actualizar: bump versión, regenera el hash con:
+       curl -sL https://cdn.jsdelivr.net/npm/livekit-client@X.Y.Z/dist/livekit-client.umd.min.js \
+         | openssl dgst -sha384 -binary | openssl base64 -A -->
+<script
+  src="https://cdn.jsdelivr.net/npm/livekit-client@2.5.5/dist/livekit-client.umd.min.js"
+  integrity="sha384-SK2L0ceym+lbNpantN6k9JO9cuAltHXX+v3xcz/W3aK4kUK9/LvRkluGkGuMlYSC"
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"></script>
+
+<script>
+  const WORKER_URL = 'https://gentle-glitter-2552.oscardevalle.workers.dev';
+
+  // El secret de locutor viaja en el fragment (#k=…), no en la query.
+  // El fragment NO se envía al servidor en GETs ni queda en `Referer`,
+  // y lo borramos inmediatamente del barra de direcciones para no dejar
+  // rastro en historial ni en capturas de pantalla.
+  function extractSecretFromHash() {
+    const hash = window.location.hash.replace(/^#/, '');
+    if (!hash) return '';
+    // Soporta tanto `#k=…` como un fragment plano.
+    const params = new URLSearchParams(hash);
+    return params.get('k') || hash;
+  }
+  const SECRET_KEY = extractSecretFromHash();
+  if (window.location.hash) {
+    // Reemplaza la URL sin recargar — el hash desaparece del historial.
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+  if (!SECRET_KEY) showScreen('screenDenied');
+
+  let room = null;
+  let myName = '';
+  let micMuted = false;
+
+  // ── PANTALLAS ──────────────────────────────────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ── WAVEFORM ───────────────────────────────────────────────────────────────
+  const waveformEl = document.getElementById('waveform');
+  const BAR_COUNT = 34;
+  const bars = [];
+
+  for (let i = 0; i < BAR_COUNT; i++) {
+    const b = document.createElement('div');
+    b.className = 'bar';
+    b.style.height = '3px';
+    waveformEl.appendChild(b);
+    bars.push(b);
+  }
+
+  let waveInterval = null;
+  let audioCtx = null;
+  let analyser = null;
+  let freqData = null;
+  let rafId = null;
+
+  function startWaveform(stream) {
+    waveformEl.classList.add('active');
+
+    // Intentar análisis real del micrófono
+    if (stream) {
+      try {
+        audioCtx = new AudioContext();
+        const src = audioCtx.createMediaStreamSource(stream);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 128;
+        analyser.smoothingTimeConstant = 0.75;
+        src.connect(analyser);
+        freqData = new Uint8Array(analyser.frequencyBinCount);
+
+        function drawFrame() {
+          rafId = requestAnimationFrame(drawFrame);
+          analyser.getByteFrequencyData(freqData);
+          bars.forEach((b, i) => {
+            const idx = Math.floor(i * freqData.length / bars.length);
+            const val = freqData[idx] / 255;
+            // Mínimo visible de 3px, máximo 28px
+            const h = 3 + val * 25;
+            b.style.height = h + 'px';
+          });
+        }
+        drawFrame();
+        console.log('🎙️ Forma de onda reactiva activada');
+        return;
+      } catch(e) {
+        console.warn('AudioContext falló, usando animación de fallback:', e.message);
+      }
+    }
+
+    // Fallback: animación sintética si no hay stream o falla el AudioContext
+    waveInterval = setInterval(() => {
+      const t = Date.now() * 0.003;
+      bars.forEach((b, i) => {
+        const h = Math.sin(t + i * 0.55) * 8 + Math.random() * 12 + 3;
+        b.style.height = Math.max(3, h) + 'px';
+      });
+    }, 80);
+  }
+
+  function stopWaveform() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    if (audioCtx) { audioCtx.close().catch(() => {}); audioCtx = null; analyser = null; freqData = null; }
+    clearInterval(waveInterval); waveInterval = null;
+    waveformEl.classList.remove('active');
+    bars.forEach(b => b.style.height = '3px');
+  }
+
+  // ── AUDIO PROMPT ───────────────────────────────────────────────────────────
+  const audioPromptEl = document.getElementById('audioPrompt');
+  function showAudioPrompt() { audioPromptEl.classList.add('visible'); }
+  function hideAudioPrompt() { audioPromptEl.classList.remove('visible'); }
+
+  // ── AUDIO REMOTO ───────────────────────────────────────────────────────────
+  function attachRemoteAudio(track, identity) {
+    console.log('🎧 attachRemoteAudio:', identity, track.sid);
+    if (document.querySelector(`audio[data-track-id="${track.sid}"]`)) return;
+
+    const audioEl = document.createElement('audio');
+    audioEl.setAttribute('data-track-id', track.sid);
+    audioEl.setAttribute('data-participant', identity);
+    audioEl.autoplay = true;
+    audioEl.muted = false;
+    audioEl.volume = 1.0;
+    audioEl.style.display = 'none';
+    audioEl.setAttribute('playsinline', '');
+    document.body.appendChild(audioEl);
+    track.attach(audioEl);
+
+    const sel = document.getElementById('audioOutputSelect');
+    if (sel.value && typeof audioEl.setSinkId === 'function') {
+      audioEl.setSinkId(sel.value).catch(() => {});
+    }
+
+    audioEl.play()
+      .then(() => { console.log('✅ Reproduciendo:', identity); hideAudioPrompt(); })
+      .catch(err => { console.warn('⏳ Autoplay bloqueado:', err.message); showAudioPrompt(); });
+  }
+
+  function forcePlayAllAudio() {
+    document.querySelectorAll('audio').forEach(a => {
+      a.muted = false;
+      a.volume = 1.0;
+      a.play().catch(() => {});
+    });
+    hideAudioPrompt();
+  }
+
+  // ── LIVEKIT ────────────────────────────────────────────────────────────────
+  async function connectToRoom(token, url) {
+    room = new LivekitClient.Room({ adaptiveStream: false, dynacast: false, autoSubscribe: true });
+
+    room.on(LivekitClient.RoomEvent.TrackSubscribed, (track, publication, participant) => {
+      console.log('📥 TrackSubscribed', track.kind, participant?.identity);
+      if (track.kind === 'audio') {
+        attachRemoteAudio(track, participant?.identity || 'desconocido');
+        setTimeout(forcePlayAllAudio, 500);
+      }
+    });
+
+    room.on(LivekitClient.RoomEvent.TrackPublished, (pub, participant) => {
+      console.log('📡 TrackPublished', pub.kind, participant.identity, 'suscrita:', pub.isSubscribed);
+      if (pub.kind === 'audio' && !pub.isSubscribed) pub.setSubscribed(true);
+    });
+
+    room.on(LivekitClient.RoomEvent.ParticipantConnected, (p) => {
+      console.log('👤 Conectado:', p.identity);
+      updateParticipants();
+    });
+
+    room.on(LivekitClient.RoomEvent.ParticipantDisconnected, (p) => {
+      console.log('👤 Desconectado:', p.identity);
+      document.querySelectorAll(`audio[data-participant="${p.identity}"]`).forEach(el => el.remove());
+      updateParticipants();
+    });
+
+    room.on(LivekitClient.RoomEvent.Connected, async () => {
+      console.log('✅ Sala conectada');
+      document.getElementById('studioDot').className = 'dot live';
+      document.getElementById('studioStatus').textContent = 'En antena';
+      document.getElementById('onAirBadge').classList.add('visible');
+
+      updateParticipants();
+      populateAudioOutputs();
+
+      room.remoteParticipants.forEach(p => {
+        p.audioTrackPublications.forEach(pub => {
+          if (pub.track) attachRemoteAudio(pub.track, p.identity);
+        });
+      });
+
+      try {
+        await room.localParticipant.setMicrophoneEnabled(true);
+        // Obtener el mediaStream del micrófono local para el analizador
+        let micStream = null;
+        room.localParticipant.audioTrackPublications.forEach(pub => {
+          if (pub.track?.mediaStream) micStream = pub.track.mediaStream;
+        });
+        startWaveform(micStream);
+      } catch(e) { console.error('Error micrófono:', e); }
+
+      setTimeout(forcePlayAllAudio, 1000);
+    });
+
+    room.on(LivekitClient.RoomEvent.Disconnected, () => {
+      stopWaveform();
+      document.getElementById('studioDot').className = 'dot';
+      document.getElementById('studioStatus').textContent = 'Desconectado';
+      document.getElementById('onAirBadge').classList.remove('visible');
+      document.querySelectorAll('audio').forEach(el => el.remove());
+    });
+
+    await room.connect(url, token);
+    showScreen('screenStudio');
+  }
+
+  // ── PARTICIPANTES ──────────────────────────────────────────────────────────
+  function updateParticipants() {
+    if (!room) return;
+    const list = document.getElementById('participantsList');
+    list.innerHTML = '';
+
+    const meEl = document.createElement('div');
+    meEl.className = 'participant-item';
+    const meMuted = !room.localParticipant.isMicrophoneEnabled;
+    meEl.innerHTML = `<div class="p-dot${meMuted ? ' muted' : ''}"></div><span class="p-name">${escHtml(myName)}</span><span class="p-tag">Tú</span>`;
+    list.appendChild(meEl);
+
+    room.remoteParticipants.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'participant-item';
+      let isMuted = true;
+      p.audioTrackPublications.forEach(pub => { if (!pub.isMuted) isMuted = false; });
+      item.innerHTML = `<div class="p-dot${isMuted ? ' muted' : ''}"></div><span class="p-name">${escHtml(p.identity)}</span>`;
+      list.appendChild(item);
+    });
+  }
+
+  // ── SALIDA AUDIO ───────────────────────────────────────────────────────────
+  async function populateAudioOutputs() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const outputs = devices.filter(d => d.kind === 'audiooutput');
+      const sel = document.getElementById('audioOutputSelect');
+      sel.innerHTML = '<option value="">— Dispositivo predeterminado —</option>';
+      outputs.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.deviceId;
+        opt.textContent = d.label || 'Salida ' + d.deviceId.slice(0, 8);
+        sel.appendChild(opt);
+      });
+    } catch(e) { console.warn('Error enumerando dispositivos:', e); }
+  }
+
+  document.getElementById('audioOutputSelect').addEventListener('change', e => {
+    console.log('🔊 Aplicando salida de audio:', e.target.value);
+    document.querySelectorAll('audio').forEach(async el => {
+      if (typeof el.setSinkId === 'function') {
+        try { await el.setSinkId(e.target.value || ''); } catch(err) { console.warn('setSinkId:', err); }
+      }
+    });
+  });
+
+  // ── MUTE ───────────────────────────────────────────────────────────────────
+  document.getElementById('btnMute').addEventListener('click', async () => {
+    if (!room) return;
+    micMuted = !micMuted;
+    await room.localParticipant.setMicrophoneEnabled(!micMuted);
+    const btn = document.getElementById('btnMute');
+    if (micMuted) {
+      btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Activar mic`;
+      btn.classList.add('muted');
+    } else {
+      btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Silenciar`;
+      btn.classList.remove('muted');
+    }
+    updateParticipants();
+  });
+
+  // ── SALIR ──────────────────────────────────────────────────────────────────
+  document.getElementById('btnLeave').addEventListener('click', async () => {
+    if (room) await room.disconnect();
+    stopWaveform();
+    micMuted = false;
+    showScreen('screenEntry');
+    document.getElementById('btnEnter').disabled = false;
+    document.getElementById('btnEnter').innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>Entrar a cabina`;
+    document.getElementById('nameInput').value = '';
+  });
+
+  // ── ENTRADA ────────────────────────────────────────────────────────────────
+  document.getElementById('btnEnter').addEventListener('click', async () => {
+    const name = document.getElementById('nameInput').value.trim();
+    const errEl = document.getElementById('entryError');
+    errEl.textContent = '';
+    if (!name) { errEl.textContent = 'Introduce tu nombre para continuar'; return; }
+
+    const btn = document.getElementById('btnEnter');
+    btn.disabled = true;
+    btn.textContent = 'Conectando...';
+
+    try {
+      const res = await fetch(`${WORKER_URL}/livekit-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ k: SECRET_KEY, name })
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Error al obtener acceso'); }
+      const { token, url } = await res.json();
+      myName = name;
+      await connectToRoom(token, url);
+    } catch(e) {
+      errEl.textContent = e.message;
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>Entrar a cabina`;
+    }
+  });
+
+  document.getElementById('nameInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btnEnter').click();
+  });
+
+  // ── DESBLOQUEO AUTOPLAY ────────────────────────────────────────────────────
+  audioPromptEl.addEventListener('click', forcePlayAllAudio);
+  document.addEventListener('click', forcePlayAllAudio, { once: true });
+
+  setInterval(() => {
+    const audios = document.querySelectorAll('audio');
+    if (audios.length > 0 && Array.from(audios).every(a => a.paused)) {
+      console.log('⚠️ Audios pausados, forzando...');
+      forcePlayAllAudio();
+    }
+  }, 2000);
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  console.log('✅ Radio Arkana · Cabina iniciada');
+</script>
+</body>
+</html>

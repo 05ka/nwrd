@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Radio Arkana · Guía de Usuario</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a; --surface: #111111; --border: #1e1e1e;
+      --red: #e63030; --red-dim: #7a1a1a; --amber: #ce9d06;
+      --white: #f0ece4; --gray: #555;
+      --font-head: 'Bebas Neue', sans-serif;
+      --font-body: 'Space Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--white); font-family: var(--font-body); font-size: 13px; line-height: 1.8; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 100; opacity: 0.35;
+    }
+    .page { max-width: 720px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* ── HEADER ── */
+    .site-header {
+      background: var(--red); padding: 7px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .site-header-label { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(0,0,0,0.55); }
+
+    /* ── LANG TOGGLE ── */
+    .lang-toggle {
+      display: flex; align-items: center; gap: 0;
+      border: 1px solid rgba(0,0,0,0.25); border-radius: 2px; overflow: hidden;
+    }
+    .lang-btn {
+      background: transparent; border: none; cursor: pointer;
+      padding: 3px 8px; font-size: 16px; line-height: 1;
+      opacity: 0.45; transition: opacity 0.2s, background 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .lang-btn:first-child { border-right: 1px solid rgba(0,0,0,0.2); }
+    .lang-btn.active { opacity: 1; background: rgba(0,0,0,0.15); }
+    .lang-btn:not(.active):hover { opacity: 0.8; }
+
+    /* ── HERO ── */
+    .hero { padding: 56px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 48px; }
+    .hero-kicker { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--red); margin-bottom: 12px; }
+    .hero-title { font-family: var(--font-head); font-size: clamp(56px, 12vw, 88px); line-height: 0.88; letter-spacing: 0.02em; margin-bottom: 20px; }
+    .hero-title span { color: var(--red); }
+    .hero-sub { font-size: 11px; color: var(--gray); letter-spacing: 0.12em; text-transform: uppercase; max-width: 420px; line-height: 2; }
+
+    /* ── SECTIONS ── */
+    .section { margin-bottom: 56px; }
+    .section-label { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+    .section-title { font-family: var(--font-head); font-size: 36px; letter-spacing: 0.04em; line-height: 1; margin-bottom: 20px; color: var(--white); }
+    .section p { color: #a09a90; margin-bottom: 16px; max-width: 600px; }
+    .section p strong { color: var(--white); font-weight: 700; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+    /* ── KNOB CARDS ── */
+    .knob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin: 28px 0; }
+    @media (max-width: 520px) { .knob-grid { grid-template-columns: 1fr; } }
+    .knob-card { background: var(--surface); padding: 24px; position: relative; }
+    .knob-card-name { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
+    .knob-card-title { font-family: var(--font-head); font-size: 22px; letter-spacing: 0.04em; color: var(--white); margin-bottom: 12px; }
+    .knob-card p { font-size: 11px; color: #8a8278; line-height: 1.9; }
+    .knob-card p strong { color: var(--white); }
+
+    /* ── TABLES ── */
+    .range-table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 10px; }
+    .range-table th { text-align: left; font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray); padding: 6px 12px 6px 0; border-bottom: 1px solid var(--border); font-weight: 400; }
+    .range-table td { padding: 8px 12px 8px 0; color: #a09a90; border-bottom: 1px solid #161616; vertical-align: top; }
+    .range-table td:first-child { color: var(--white); width: 90px; font-weight: 700; }
+    .badge { display: inline-block; padding: 1px 7px; font-size: 8px; letter-spacing: 0.15em; border-radius: 1px; }
+    .badge-delta  { background: rgba(107,140,255,0.15); color: #6b8cff; }
+    .badge-theta  { background: rgba(168,85,247,0.15);  color: #a855f7; }
+    .badge-alpha  { background: rgba(34,197,94,0.15);   color: #22c55e; }
+    .badge-beta   { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+    .badge-gamma  { background: rgba(239,68,68,0.15);   color: #ef4444; }
+    .badge-white  { background: rgba(240,236,228,0.1);  color: #e0dbd0; }
+    .badge-pink   { background: rgba(232,143,160,0.15); color: #e88fa0; }
+    .badge-brown  { background: rgba(160,112,74,0.2);   color: #a0704a; }
+
+    /* ── PRESET BLOCK ── */
+    .preset-block { border: 1px solid var(--red-dim); background: rgba(230,48,48,0.04); padding: 24px 28px; margin: 28px 0; position: relative; }
+    .preset-block::before { content: '★'; position: absolute; top: -10px; left: 24px; background: var(--bg); padding: 0 8px; color: var(--red); font-size: 14px; }
+    .preset-block-title { font-family: var(--font-head); font-size: 20px; letter-spacing: 0.05em; color: var(--white); margin-bottom: 10px; }
+    .preset-block p { font-size: 11px; color: #8a8278; line-height: 1.9; margin-bottom: 10px; }
+    .preset-block p:last-child { margin-bottom: 0; }
+    .preset-block p strong { color: var(--white); }
+
+    /* ── STATUS LIST ── */
+    .status-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); margin: 20px 0 28px; }
+    .status-item { background: var(--surface); padding: 14px 20px; display: flex; align-items: center; gap: 14px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .status-dot.gray  { background: var(--gray); }
+    .status-dot.red   { background: var(--red);   box-shadow: 0 0 8px var(--red); }
+    .status-dot.amber { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+    .status-info { flex: 1; }
+    .status-name { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--white); margin-bottom: 2px; }
+    .status-desc { font-size: 10px; color: var(--gray); line-height: 1.6; }
+
+    /* ── TIP ── */
+    .tip { border-left: 2px solid var(--amber); padding: 12px 18px; margin: 20px 0; background: rgba(206,157,6,0.05); }
+    .tip-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--amber); margin-bottom: 6px; }
+    .tip p { font-size: 11px; color: #a09a90; line-height: 1.8; margin: 0; }
+    .tip p strong { color: var(--white); }
+
+    /* ── RECIPE GRID ── */
+    .recipe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin: 24px 0; }
+    @media (max-width: 520px) { .recipe-grid { grid-template-columns: 1fr; } }
+    .recipe-card { background: var(--surface); padding: 22px; }
+    .recipe-title { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--red); margin-bottom: 10px; }
+    .recipe-name { font-family: var(--font-head); font-size: 18px; color: var(--white); margin-bottom: 14px; }
+    .recipe-settings { display: flex; flex-direction: column; gap: 5px; }
+    .recipe-row { display: flex; justify-content: space-between; font-size: 10px; padding: 4px 0; border-bottom: 1px solid #161616; }
+    .recipe-row:last-child { border-bottom: none; }
+    .recipe-key { color: var(--gray); }
+    .recipe-val { color: var(--white); font-weight: 700; }
+
+    /* ── QRNG BLOCK ── */
+    .qrng-block { border: 1px solid #1a2a1a; background: rgba(34,197,94,0.03); padding: 24px 28px; margin: 28px 0; position: relative; }
+    .qrng-block::before { content: 'ψ'; position: absolute; top: -13px; left: 24px; background: var(--bg); padding: 0 8px; color: #22c55e; font-size: 20px; font-family: serif; line-height: 1; }
+    .qrng-block-title { font-family: var(--font-head); font-size: 20px; letter-spacing: 0.05em; color: var(--white); margin-bottom: 10px; }
+    .qrng-block p { font-size: 11px; color: #8a8278; line-height: 1.9; margin-bottom: 10px; }
+    .qrng-block p:last-child { margin-bottom: 0; }
+    .qrng-block p strong { color: var(--white); }
+    .qrng-indicators { display: flex; gap: 1px; background: var(--border); border: 1px solid var(--border); margin: 20px 0; }
+    .qrng-ind { background: var(--surface); padding: 18px 24px; flex: 1; display: flex; align-items: center; gap: 16px; }
+    .qrng-symbol { font-size: 24px; font-family: serif; flex-shrink: 0; line-height: 1; width: 28px; text-align: center; }
+    .qrng-ind-name { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--white); margin-bottom: 4px; }
+    .qrng-ind-desc { font-size: 10px; color: var(--gray); line-height: 1.6; }
+    @media (max-width: 520px) { .qrng-indicators { flex-direction: column; } }
+
+    /* ── FOOTER ── */
+    .site-footer { border-top: 1px solid var(--border); padding: 20px 0; display: flex; justify-content: space-between; font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #333; margin-top: 48px; }
+
+    /* ── FADE IN ── */
+    .fade-in { opacity: 0; transform: translateY(12px); transition: opacity 0.5s ease, transform 0.5s ease; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── LANG TRANSITION ── */
+    [data-es], [data-en] { transition: opacity 0.15s ease; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/index.html" style="display:flex; align-items:center; gap:8px; text-decoration:none; opacity:0.6; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'" title="Volver a la radio">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.8)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    <span class="site-header-label" data-es="Radio Arkana · Guía de usuario" data-en="Radio Arkana · User Guide">Radio Arkana · Guía de usuario</span>
+  </a>
+  <div style="display:flex; align-items:center; gap:16px;">
+    <span class="site-header-label">*</span>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button class="lang-btn active" id="btnES" onclick="setLang('es')" aria-pressed="true" title="Español">🇪🇸</button>
+      <button class="lang-btn" id="btnEN" onclick="setLang('en')" aria-pressed="false" title="English">🇬🇧</button>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- ── HERO ── -->
+  <div class="hero fade-in">
+    <p class="hero-kicker" data-es="Manual de operación" data-en="Operation Manual">Manual de operación</p>
+    <h1 class="hero-title" data-es="CÓMO<br>ESCUCHAR<br><span>ARKANA</span>" data-en="HOW TO<br>LISTEN TO<br><span>ARKANA</span>">CÓMO<br>ESCUCHAR<br><span>ARKANA</span></h1>
+    <p class="hero-sub"
+       data-es="Una guía para sacar el máximo partido a los controles de la emisora. Ruido, frecuencias binaurales, letanías, el preset Arkana, la cámara de sincronicidad y el generador cuántico de tiradas."
+       data-en="A guide to getting the most out of the station's controls. Noise, binaural frequencies, litanies, the Arkana preset, the synchronicity camera and the quantum draw generator.">Una guía para sacar el máximo partido a los controles de la emisora. Ruido, frecuencias binaurales, letanías, el preset Arkana, la cámara de sincronicidad y el generador cuántico de tiradas.</p>
+  </div>
+
+  <!-- ── §00 QUÉ ES ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="00 · Definición" data-en="00 · Definition">00 · Definición</p>
+    <h2 class="section-title" data-es="QUÉ ES<br><span style='color:var(--red)'>ARKANA</span>" data-en="WHAT IS<br><span style='color:var(--red)'>ARKANA</span>">QUÉ ES<br><span style="color:var(--red)">ARKANA</span></h2>
+
+    <p data-es="Radio Arkana es un artefacto de <strong>technomysticismo</strong> en su forma más destilada: el punto exacto donde la ingeniería de señales y el imaginario mágico-oculto colapsan en una sola experiencia. Su función no es hablar <em>de</em> lo oculto, sino inducir el estado que lo oculto promete."
+       data-en="Radio Arkana is an artifact of <strong>technomysticism</strong> in its most distilled form: the precise point where signal engineering and the magical-occult imaginary collapse into a single experience. Its function is not to speak <em>about</em> the occult, but to induce the state the occult promises.">Radio Arkana es un artefacto de <strong>technomysticismo</strong> en su forma más destilada: el punto exacto donde la ingeniería de señales y el imaginario mágico-oculto colapsan en una sola experiencia. Su función no es hablar <em>de</em> lo oculto, sino inducir el estado que lo oculto promete.</p>
+
+    <p data-es="Los controles de ruido binaural, los tipos de ruido (white, pink, brown) y las frecuencias cerebrales theta y delta son literalmente mandos de estado de conciencia superpuestos a una transmisión. Los tonos binaurales son una versión técnicamente verificable del viejo «fluido animal» del mesmerismo: no pretenden magia donde hay física, pero tampoco renuncian al efecto."
+       data-en="The binaural noise controls, the noise types (white, pink, brown), and the theta and delta brainwave frequencies are literally consciousness-state dials layered over a transmission. The binaural tones are a technically verifiable version of the old mesmeric «animal fluid»: they claim no magic where there is physics, but they do not relinquish the effect.">Los controles de ruido binaural, los tipos de ruido (white, pink, brown) y las frecuencias cerebrales theta y delta son literalmente mandos de estado de conciencia superpuestos a una transmisión. Los tonos binaurales son una versión técnicamente verificable del viejo «fluido animal» del mesmerismo: no pretenden magia donde hay física, pero tampoco renuncian al efecto.</p>
+
+    <p data-es="Radio Arkana en modo Letanía: una voz sintetizada recita combinaciones de arcanos generadas por aleatoriedad cuántica real, en pausas calculadas para que cada combinación resuene antes de que llegue la siguiente. Es una señal que parece venir de ningún sitio pero que articula sentido — la misma tradición que va desde las emisiones espiritistas del siglo XIX hasta los experimentos de voz electrónica de Raudive. Un dispositivo diseñado para habitar el estado liminal: el umbral entre vigilia y sueño, el cruce de caminos."
+       data-en="Radio Arkana in Litany mode: a synthesized voice recites combinations of arcana generated by real quantum randomness, in calculated pauses that allow each combination to resonate before the next arrives. It is a signal that seems to come from nowhere yet articulates meaning — the same tradition running from the spiritualist broadcasts of the 19th century to Raudive's electronic voice experiments. A device designed to inhabit the liminal state: the threshold between waking and sleep, the crossroads.">Radio Arkana en modo Letanía: una voz sintetizada recita combinaciones de arcanos generadas por aleatoriedad cuántica real, en pausas calculadas para que cada combinación resuene antes de que llegue la siguiente. Es una señal que parece venir de ningún sitio pero que articula sentido — la misma tradición que va desde las emisiones espiritistas del siglo XIX hasta los experimentos de voz electrónica de Raudive. Un dispositivo diseñado para habitar el estado liminal: el umbral entre vigilia y sueño, el cruce de caminos.</p>
+
+    <p data-es="La aleatoriedad cuántica que gobierna las tiradas no es un adorno: es la interfaz entre el estado interior del oyente y el azar del mundo, tecnología puesta al servicio de producir encuentros significativos poniendo en evidencia la ilusión de la separación entre mundo «ahí fuera» y la luz imaginal «aquí dentro»."
+       data-en="The quantum randomness governing the draws is no ornament: it is the interface between the listener's inner state and the chance of the world, technology in the service of producing meaningful encounters — exposing the illusion of separation between the world «out there» and the imaginal light «in here».">La aleatoriedad cuántica que gobierna las tiradas no es un adorno: es la interfaz entre el estado interior del oyente y el azar del mundo, tecnología puesta al servicio de producir encuentros significativos poniendo en evidencia la ilusión de la separación entre mundo «ahí fuera» y la luz imaginal «aquí dentro».</p>
+
+    <div class="preset-block">
+      <div class="preset-block-title" data-es="En síntesis" data-en="In short">En síntesis</div>
+      <p data-es="Radio Arkana es un receptor sintonizado no en frecuencias hertzianas sino en los estratos más profundos del inconsciente tecnológico — un aparato que usa ruido, ritual y aleatoriedad cuántica para hacer exactamente lo que la electricidad prometió desde el siglo XVIII: <strong>disolver la frontera entre la máquina y el alma</strong>."
+         data-en="Radio Arkana is a receiver tuned not to Hertzian frequencies but to the deepest strata of the technological unconscious — a device that uses noise, ritual, and quantum randomness to do precisely what electricity promised since the 18th century: <strong>dissolve the boundary between the machine and the soul</strong>.">Radio Arkana es un receptor sintonizado no en frecuencias hertzianas sino en los estratos más profundos del inconsciente tecnológico — un aparato que usa ruido, ritual y aleatoriedad cuántica para hacer exactamente lo que la electricidad prometió desde el siglo XVIII: <strong>disolver la frontera entre la máquina y el alma</strong>.</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §01 QUÉ ESCUCHAS ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="01 · Introducción" data-en="01 · Introduction">01 · Introducción</p>
+    <h2 class="section-title" data-es="QUÉ ESCUCHAS" data-en="WHAT YOU HEAR">QUÉ ESCUCHAS</h2>
+    <p data-es="Radio Arkana tiene dos modos de emisión que conviven y se alternan de forma automática. Cuando la señal en directo está disponible, escuchas el <strong>stream en vivo</strong>. Cuando la señal cae o no hay cobertura, la radio entra en modo <strong>Letanía Arkana</strong>: una voz sintetizada que recita combinaciones de arcanos del Tarot en bucle, generadas en tiempo real en tu dispositivo usando aleatoriedad cuántica real."
+       data-en="Radio Arkana has two broadcast modes that coexist and alternate automatically. When the live signal is available, you hear the <strong>live stream</strong>. When the signal drops or there is no coverage, the radio enters <strong>Arkana Litany</strong> mode: a synthesised voice that recites combinations of Tarot arcana in a loop, generated in real time on your device using genuine quantum randomness.">Radio Arkana tiene dos modos de emisión que conviven y se alternan de forma automática. Cuando la señal en directo está disponible, escuchas el <strong>stream en vivo</strong>. Cuando la señal cae o no hay cobertura, la radio entra en modo <strong>Letanía Arkana</strong>: una voz sintetizada que recita combinaciones de arcanos del Tarot en bucle, generadas en tiempo real en tu dispositivo usando aleatoriedad cuántica real.</p>
+    <p data-es="Sobre cualquiera de los dos modos puedes superponer capas de ruido generativo y tonos binaurales, que se mezclan localmente en tu navegador. Nada de esto va al servidor: es tu propio espacio sonoro."
+       data-en="Over either mode you can layer generative noise and binaural tones, mixed locally in your browser. None of this goes to the server: it is your own sonic space.">Sobre cualquiera de los dos modos puedes superponer capas de ruido generativo y tonos binaurales, que se mezclan localmente en tu navegador. Nada de esto va al servidor: es tu propio espacio sonoro.</p>
+
+    <div class="status-list">
+      <div class="status-item">
+        <div class="status-dot gray"></div>
+        <div class="status-info">
+          <div class="status-name" data-es="Desconectado" data-en="Disconnected">Desconectado</div>
+          <div class="status-desc" data-es="La radio está parada. Pulsa el botón para iniciar." data-en="The radio is stopped. Press the button to start.">La radio está parada. Pulsa el botón para iniciar.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot amber"></div>
+        <div class="status-info">
+          <div class="status-name" data-es="Sincronizando..." data-en="Syncing...">Sincronizando...</div>
+          <div class="status-desc" data-es="La radio está intentando conectar al stream. Espera unos segundos." data-en="The radio is trying to connect to the stream. Wait a few seconds.">La radio está intentando conectar al stream. Espera unos segundos.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot red"></div>
+        <div class="status-info">
+          <div class="status-name" data-es="En directo" data-en="Live">En directo</div>
+          <div class="status-desc" data-es="Señal recibida. Estás escuchando el stream en vivo." data-en="Signal received. You are listening to the live stream.">Señal recibida. Estás escuchando el stream en vivo.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot amber"></div>
+        <div class="status-info">
+          <div class="status-name" data-es="Letanía Arkana" data-en="Arkana Litany">Letanía Arkana</div>
+          <div class="status-desc" data-es="El stream no está disponible. La voz sintetizada recita arcanos en bucle." data-en="The stream is unavailable. The synthesised voice recites arcana in a loop.">El stream no está disponible. La voz sintetizada recita arcanos en bucle.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §02 LOS KNOBS ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="02 · Los controles" data-en="02 · Controls">02 · Los controles</p>
+    <h2 class="section-title" data-es="LOS KNOBS" data-en="THE KNOBS">LOS KNOBS</h2>
+    <p data-es="Los cuatro mandos aparecen en la parte inferior del reproductor una vez que pulsas play. Se manejan arrastrando hacia arriba para subir el valor y hacia abajo para bajarlo. En móvil funcionan igual con el dedo."
+       data-en="The four knobs appear at the bottom of the player once you press play. Drag upward to increase the value, downward to decrease it. On mobile they work the same way with your finger.">Los cuatro mandos aparecen en la parte inferior del reproductor una vez que pulsas play. Se manejan arrastrando hacia arriba para subir el valor y hacia abajo para bajarlo. En móvil funcionan igual con el dedo.</p>
+
+    <div class="knob-grid">
+      <div class="knob-card">
+        <div class="knob-card-name" data-es="Knob 1" data-en="Knob 1">Knob 1</div>
+        <div class="knob-card-title" data-es="RUIDO" data-en="NOISE">RUIDO</div>
+        <p data-es="Genera una capa de <strong>ruido de fondo</strong> mezclado sobre el audio principal. Tiene cuatro posiciones: OFF, WHITE, PINK y BROWN. Gira hacia arriba para avanzar entre tipos."
+           data-en="Generates a layer of <strong>background noise</strong> mixed over the main audio. It has four positions: OFF, WHITE, PINK and BROWN. Drag upward to advance between types.">Genera una capa de <strong>ruido de fondo</strong> mezclado sobre el audio principal. Tiene cuatro posiciones: OFF, WHITE, PINK y BROWN. Gira hacia arriba para avanzar entre tipos.</p>
+        <p data-es="El ruido es generado localmente por tu navegador y no afecta a la señal del stream."
+           data-en="The noise is generated locally by your browser and does not affect the stream signal.">El ruido es generado localmente por tu navegador y no afecta a la señal del stream.</p>
+      </div>
+      <div class="knob-card">
+        <div class="knob-card-name" data-es="Knob 2" data-en="Knob 2">Knob 2</div>
+        <div class="knob-card-title" data-es="BINAURAL" data-en="BINAURAL">BINAURAL</div>
+        <p data-es="Activa un <strong>tono binaural</strong> estéreo. El oído izquierdo escucha 200 Hz, el derecho escucha 200 Hz más la frecuencia que elijas. El cerebro percibe la diferencia como un pulso."
+           data-en="Activates a stereo <strong>binaural tone</strong>. The left ear hears 200 Hz, the right hears 200 Hz plus the frequency you choose. The brain perceives the difference as a pulse.">Activa un <strong>tono binaural</strong> estéreo. El oído izquierdo escucha 200 Hz, el derecho escucha 200 Hz más la frecuencia que elijas. El cerebro percibe la diferencia como un pulso.</p>
+        <p data-es="Requiere <strong>auriculares</strong> para funcionar correctamente. Con altavoces los dos canales se mezclan y el efecto desaparece."
+           data-en="Requires <strong>headphones</strong> to work correctly. With speakers the two channels mix physically and the effect disappears.">Requiere <strong>auriculares</strong> para funcionar correctamente. Con altavoces los dos canales se mezclan y el efecto desaparece.</p>
+      </div>
+      <div class="knob-card">
+        <div class="knob-card-name" data-es="Knob 3" data-en="Knob 3">Knob 3</div>
+        <div class="knob-card-title" data-es="PAUSA" data-en="PAUSE">PAUSA</div>
+        <p data-es="Controla el <strong>silencio entre frases</strong> de la Letanía Arkana. Rango de 10 a 25 segundos. Solo tiene efecto cuando la radio está en modo Letanía."
+           data-en="Controls the <strong>silence between phrases</strong> of the Arkana Litany. Range from 10 to 25 seconds. Only takes effect when the radio is in Litany mode.">Controla el <strong>silencio entre frases</strong> de la Letanía Arkana. Rango de 10 a 25 segundos. Solo tiene efecto cuando la radio está en modo Letanía.</p>
+        <p data-es="Más pausa da tiempo para que las combinaciones de arcanos <strong>resuenen</strong> antes de que llegue la siguiente."
+           data-en="More pause gives time for the arcana combinations to <strong>resonate</strong> before the next one arrives.">Más pausa da tiempo para que las combinaciones de arcanos <strong>resuenen</strong> antes de que llegue la siguiente.</p>
+      </div>
+      <div class="knob-card">
+        <div class="knob-card-name" data-es="Knob 4" data-en="Knob 4">Knob 4</div>
+        <div class="knob-card-title" data-es="REPETICIONES" data-en="REPETITIONS">REPETICIONES</div>
+        <p data-es="Número de veces que se repite cada <strong>trío de arcanos</strong> antes de sortear uno nuevo. De 1 a 10 repeticiones. En posición cero, la Letanía se silencia completamente."
+           data-en="Number of times each <strong>arcana trio</strong> repeats before a new one is drawn. From 1 to 10 repetitions. At position zero, the Litany is completely silenced.">Número de veces que se repite cada <strong>trío de arcanos</strong> antes de sortear uno nuevo. De 1 a 10 repeticiones. En posición cero, la Letanía se silencia completamente.</p>
+        <p data-es="Más repeticiones crean un efecto de <strong>mantra</strong> antes de cambiar la combinación."
+           data-en="More repetitions create a <strong>mantra</strong> effect before the combination changes.">Más repeticiones crean un efecto de <strong>mantra</strong> antes de cambiar la combinación.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── §02a RUIDO ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="02a · Ruido" data-en="02a · Noise">02a · Ruido</p>
+    <h2 class="section-title" data-es="TIPOS DE RUIDO" data-en="NOISE TYPES">TIPOS DE RUIDO</h2>
+    <p data-es="Cada tipo de ruido tiene una densidad espectral distinta. No son equivalentes: cada uno produce un efecto psicoacústico diferente."
+       data-en="Each noise type has a different spectral density. They are not equivalent: each produces a different psychoacoustic effect.">Cada tipo de ruido tiene una densidad espectral distinta. No son equivalentes: cada uno produce un efecto psicoacústico diferente.</p>
+
+    <table class="range-table">
+      <thead>
+        <tr>
+          <th data-es="Tipo" data-en="Type">Tipo</th>
+          <th data-es="Carácter" data-en="Character">Carácter</th>
+          <th data-es="Uso recomendado" data-en="Recommended use">Uso recomendado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-white">WHITE</span></td>
+          <td data-es="Energía uniforme en todas las frecuencias. Siseante, como lluvia estática." data-en="Uniform energy across all frequencies. Hissing, like static rain.">Energía uniforme en todas las frecuencias. Siseante, como lluvia estática.</td>
+          <td data-es="Enmascarar ruidos exteriores. Foco intenso. Sensación de aislamiento." data-en="Mask external sounds. Intense focus. Sense of isolation.">Enmascarar ruidos exteriores. Foco intenso. Sensación de aislamiento.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-pink">PINK</span></td>
+          <td data-es="Energía inversamente proporcional a la frecuencia. Más cálido que el blanco." data-en="Energy inversely proportional to frequency. Warmer than white noise.">Energía inversamente proporcional a la frecuencia. Más cálido que el blanco.</td>
+          <td data-es="El más natural. Similar al sonido del agua o viento suave. Meditación, concentración prolongada." data-en="The most natural. Similar to the sound of water or gentle wind. Meditation, prolonged concentration.">El más natural. Similar al sonido del agua o viento suave. Meditación, concentración prolongada.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-brown">BROWN</span></td>
+          <td data-es="Energía muy concentrada en graves. Profundo, como un motor lejano o trueno continuo." data-en="Energy heavily concentrated in bass. Deep, like a distant engine or continuous thunder.">Energía muy concentrada en graves. Profundo, como un motor lejano o trueno continuo.</td>
+          <td data-es="Relajación profunda. Sueño. Combinado con binaural DELTA es especialmente efectivo." data-en="Deep relaxation. Sleep. Combined with DELTA binaural it is especially effective.">Relajación profunda. Sueño. Combinado con binaural DELTA es especialmente efectivo.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="tip">
+      <div class="tip-label" data-es="Consejo" data-en="Tip">Consejo</div>
+      <p data-es="El ruido está mezclado a un nivel deliberadamente bajo para no tapar el audio principal. Si quieres más presencia, sube el volumen general con el slider de la parte inferior del reproductor."
+         data-en="The noise is mixed at a deliberately low level so as not to cover the main audio. If you want more presence, raise the general volume with the slider at the bottom of the player.">El ruido está mezclado a un nivel deliberadamente bajo para no tapar el audio principal. Si quieres más presencia, sube el volumen general con el slider de la parte inferior del reproductor.</p>
+    </div>
+  </section>
+
+  <!-- ── §02b BINAURAL ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="02b · Binaural" data-en="02b · Binaural">02b · Binaural</p>
+    <h2 class="section-title" data-es="BANDAS BINAURALES" data-en="BINAURAL BANDS">BANDAS BINAURALES</h2>
+    <p data-es="El knob binaural recorre seis bandas de frecuencia cerebrales. El marcador del knob cambia de color según la banda activa."
+       data-en="The binaural knob traverses six brain frequency bands. The knob marker changes colour according to the active band.">El knob binaural recorre seis bandas de frecuencia cerebrales. El marcador del knob cambia de color según la banda activa.</p>
+
+    <table class="range-table">
+      <thead>
+        <tr>
+          <th data-es="Banda" data-en="Band">Banda</th>
+          <th data-es="Frecuencia" data-en="Frequency">Frecuencia</th>
+          <th data-es="Estado asociado" data-en="Associated state">Estado asociado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-delta">DELTA</span></td>
+          <td>0.5 – 4 Hz</td>
+          <td data-es="Sueño profundo. Regeneración. Inconsciencia." data-en="Deep sleep. Regeneration. Unconsciousness.">Sueño profundo. Regeneración. Inconsciencia.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-theta">THETA</span></td>
+          <td>4 – 8 Hz</td>
+          <td data-es="Hipnosis. Ensoñación. Estado liminal entre vigilia y sueño. Creatividad intuitiva." data-en="Hypnosis. Reverie. Liminal state between waking and sleep. Intuitive creativity.">Hipnosis. Ensoñación. Estado liminal entre vigilia y sueño. Creatividad intuitiva.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-alpha">ALPHA</span></td>
+          <td>8 – 12 Hz</td>
+          <td data-es="Relajación despierta. Meditación ligera. Flujo creativo." data-en="Awake relaxation. Light meditation. Creative flow.">Relajación despierta. Meditación ligera. Flujo creativo.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-beta">BETA</span></td>
+          <td>12 – 30 Hz</td>
+          <td data-es="Concentración activa. Pensamiento analítico. Alerta." data-en="Active concentration. Analytical thinking. Alert.">Concentración activa. Pensamiento analítico. Alerta.</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-gamma">GAMMA</span></td>
+          <td>30 – 40 Hz</td>
+          <td data-es="Alta cognición. Integración de información. Insight." data-en="High cognition. Information integration. Insight.">Alta cognición. Integración de información. Insight.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="tip">
+      <div class="tip-label" data-es="Importante" data-en="Important">Importante</div>
+      <p data-es="<strong>Usa siempre auriculares</strong> con el binaural activado. El efecto requiere que cada oído reciba una frecuencia ligeramente diferente. Los altavoces mezclan los canales físicamente y el pulso desaparece."
+         data-en="<strong>Always use headphones</strong> with binaural activated. The effect requires each ear to receive a slightly different frequency. Speakers mix the channels physically and the pulse disappears."><strong>Usa siempre auriculares</strong> con el binaural activado. El efecto requiere que cada oído reciba una frecuencia ligeramente diferente. Los altavoces mezclan los canales físicamente y el pulso desaparece.</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §03 INTERFAZ ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="03 · Interfaz" data-en="03 · Interface">03 · Interfaz</p>
+    <h2 class="section-title" data-es="TEMA Y<br>CÁMARA" data-en="THEME &<br>CAMERA">TEMA Y<br>CÁMARA</h2>
+    <p data-es="En la barra roja superior del reproductor encontrarás dos controles de interfaz accesibles en todo momento, sin necesidad de pulsar play."
+       data-en="In the red top bar of the player you will find two interface controls accessible at all times, without needing to press play.">En la barra roja superior del reproductor encontrarás dos controles de interfaz accesibles en todo momento, sin necesidad de pulsar play.</p>
+
+    <!-- TEMA -->
+    <div class="knob-card" style="margin: 28px 0 0;">
+      <div class="knob-card-name" data-es="Header · esquina derecha" data-en="Header · top right">Header · esquina derecha</div>
+      <div class="knob-card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:8px; color:var(--red);"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg><span data-es="TEMA" data-en="THEME">TEMA</span>
+      </div>
+      <p data-es="Alterna entre el <strong>modo oscuro</strong> (por defecto) y el <strong>modo claro</strong>. El icono es un sol: cuando el tema es oscuro, el sol aparece tenue; al activar el modo claro, se ilumina."
+         data-en="Toggles between <strong>dark mode</strong> (default) and <strong>light mode</strong>. The icon is a sun: when the theme is dark, the sun appears dim; when light mode is active, it brightens.">Alterna entre el <strong>modo oscuro</strong> (por defecto) y el <strong>modo claro</strong>. El icono es un sol: cuando el tema es oscuro, el sol aparece tenue; al activar el modo claro, se ilumina.</p>
+      <p data-es="El cambio es instantáneo y afecta a toda la interfaz — fondo, superficies, bordes y tipografía."
+         data-en="The change is instant and affects the entire interface — background, surfaces, borders and typography.">El cambio es instantáneo y afecta a toda la interfaz — fondo, superficies, bordes y tipografía.</p>
+    </div>
+
+    <!-- CÁMARA -->
+    <div class="knob-card" style="margin: 1px 0 28px; border-top: none;">
+      <div class="knob-card-name" data-es="Controles · aparece con cartas activas" data-en="Controls · appears with active cards">Controles · aparece con cartas activas</div>
+      <div class="knob-card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:8px; color:var(--red);"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span data-es="CÁMARA" data-en="CAMERA">CÁMARA</span>
+      </div>
+      <p data-es="A veces lo que escuchas y lo que encuentras en ese momento <strong>coinciden de una forma que no debería ser posible</strong>. Los arcanos nombran algo que está ocurriendo ahí fuera. La cámara existe para fijar ese instante antes de que se disuelva."
+         data-en="Sometimes what you hear and what you encounter at that moment <strong>coincide in a way that should not be possible</strong>. The arcana name something that is happening out there. The camera exists to fix that instant before it dissolves.">A veces lo que escuchas y lo que encuentras en ese momento <strong>coinciden de una forma que no debería ser posible</strong>. Los arcanos nombran algo que está ocurriendo ahí fuera. La cámara existe para fijar ese instante antes de que se disuelva.</p>
+      <p data-es="La imagen lleva grabado el trío activo, la marca de tiempo exacta y, si lo has configurado, tu <strong>@usuario</strong> de redes sociales: todo el contexto del momento incrustado en un solo archivo listo para compartir."
+         data-en="The image carries the active trio, the exact timestamp and, if you have set it, your social media <strong>@handle</strong>: all the context of the moment embedded in a single file ready to share.">La imagen lleva grabado el trío activo, la marca de tiempo exacta y, si lo has configurado, tu <strong>@usuario</strong> de redes sociales: todo el contexto del momento incrustado en un solo archivo listo para compartir.</p>
+    </div>
+
+    <div class="preset-block">
+      <div class="preset-block-title" data-es="Documenta la sincronicidad" data-en="Document the synchronicity">Documenta la sincronicidad</div>
+      <p data-es="Una fotografía de sincronicidad no es una instantánea ordinaria. Es un <strong>documento</strong>: prueba de que en ese segundo, bajo esa señal, con esos arcanos resonando, algo en el mundo exterior respondió."
+         data-en="A synchronicity photograph is not an ordinary snapshot. It is a <strong>document</strong>: proof that at that second, under that signal, with those arcana resonating, something in the outer world responded.">Una fotografía de sincronicidad no es una instantánea ordinaria. Es un <strong>documento</strong>: prueba de que en ese segundo, bajo esa señal, con esos arcanos resonando, algo en el mundo exterior respondió.</p>
+      <p data-es="Guárdala o compártela — quien la vea verá también los arcanos, la señal, el momento. No solo una imagen: una <strong>transmisión diferida desde el éter</strong>."
+         data-en="Keep it or share it — whoever sees it will also see the arcana, the signal, the moment. Not just an image: a <strong>deferred transmission from the ether</strong>.">Guárdala o compártela — quien la vea verá también los arcanos, la señal, el momento. No solo una imagen: una <strong>transmisión diferida desde el éter</strong>.</p>
+    </div>
+
+    <div class="tip">
+      <div class="tip-label" data-es="Modo normal" data-en="Normal mode">Modo normal</div>
+      <p data-es="Pulsa el icono de cámara cuando haya un trío activo. Se abre el visor: encuadra y <strong>dispara</strong> con el botón blanco central. Desde la pantalla de resultado puedes <strong>guardar</strong> o <strong>compartir</strong>. Si el encuadre no era el adecuado, <strong>← Repetir</strong> vuelve al visor. <strong>✕ Salir</strong> cierra la cámara."
+         data-en="Tap the camera icon when a trio is active. The viewfinder opens: frame and <strong>shoot</strong> with the central white button. From the result screen you can <strong>save</strong> or <strong>share</strong>. If the framing was off, <strong>← Retry</strong> returns to the viewfinder. <strong>✕ Exit</strong> closes the camera.">Pulsa el icono de cámara cuando haya un trío activo. Se abre el visor: encuadra y <strong>dispara</strong> con el botón blanco central. Desde la pantalla de resultado puedes <strong>guardar</strong> o <strong>compartir</strong>. Si el encuadre no era el adecuado, <strong>← Repetir</strong> vuelve al visor. <strong>✕ Salir</strong> cierra la cámara.</p>
+    </div>
+
+    <div class="tip">
+      <div class="tip-label" data-es="Disparo instantáneo" data-en="Instant shot">Disparo instantáneo</div>
+      <p data-es="<strong>Mantén pulsado el icono de cámara durante 3 segundos</strong> para activar el modo de disparo instantáneo — el icono se torna rojo con un anillo pulsante. En este modo, al pulsar el icono la foto se toma <strong>a ciegas</strong> con la cámara trasera y se guarda automáticamente, sin abrir ningún visor ni pantalla de resultado. Ideal para capturar sincronicidades en movimiento sin perder el momento. Para desactivarlo, mantén pulsado de nuevo 3 segundos."
+         data-en="<strong>Hold the camera icon for 3 seconds</strong> to activate instant shot mode — the icon turns red with a pulsing ring. In this mode, tapping the icon takes the photo <strong>blindly</strong> with the rear camera and saves it automatically, without opening any viewfinder or result screen. Ideal for capturing synchronicities on the move without losing the moment. To deactivate, hold again for 3 seconds."><strong>Mantén pulsado el icono de cámara durante 3 segundos</strong> para activar el modo de disparo instantáneo — el icono se torna rojo con un anillo pulsante. En este modo, al pulsar el icono la foto se toma <strong>a ciegas</strong> con la cámara trasera y se guarda automáticamente, sin abrir ningún visor ni pantalla de resultado. Ideal para capturar sincronicidades en movimiento sin perder el momento. Para desactivarlo, mantén pulsado de nuevo 3 segundos.</p>
+    </div>
+
+    <div class="tip">
+      <div class="tip-label" data-es="Tu @ en las fotos" data-en="Your @ on photos">Tu @ en las fotos</div>
+      <p data-es="Antes de pulsar play, introduce tu nombre de usuario en el campo <strong>@</strong> que aparece bajo el botón. Quedará grabado en todas las fotos que tomes, junto al dominio y la fecha, para que quien las vea sepa quién las capturó y desde dónde sintonizó."
+         data-en="Before pressing play, enter your username in the <strong>@</strong> field that appears below the button. It will be embedded in all your photos alongside the domain and date, so that whoever sees them knows who captured them and where they tuned in from.">Antes de pulsar play, introduce tu nombre de usuario en el campo <strong>@</strong> que aparece bajo el botón. Quedará grabado en todas las fotos que tomes, junto al dominio y la fecha, para que quien las vea sepa quién las capturó y desde dónde sintonizó.</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §04 PRESET (antes §03) ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="04 · Configuración Arkana" data-en="04 · Arkana Configuration">04 · Configuración Arkana</p>
+    <h2 class="section-title" data-es="EL PRESET ★" data-en="THE PRESET ★">EL PRESET ★</h2>
+    <p data-es="La estrella (★) en la esquina derecha de los controles activa el <strong>Preset Arkana</strong>: una configuración diseñada para la escucha ritual de la Letanía. Aplica simultáneamente:"
+       data-en="The star (★) in the top right of the controls activates the <strong>Arkana Preset</strong>: a configuration designed for the ritual listening of the Litany. It simultaneously applies:">La estrella (★) en la esquina derecha de los controles activa el <strong>Preset Arkana</strong>: una configuración diseñada para la escucha ritual de la Letanía. Aplica simultáneamente:</p>
+
+    <div class="preset-block">
+      <div class="preset-block-title" data-es="Configuración Arkana" data-en="Arkana Configuration">Configuración Arkana</div>
+      <p data-es="<strong>Ruido:</strong> PINK — cálido y envolvente, sin saturar las frecuencias de la voz." data-en="<strong>Noise:</strong> PINK — warm and enveloping, without saturating the voice frequencies."><strong>Ruido:</strong> PINK — cálido y envolvente, sin saturar las frecuencias de la voz.</p>
+      <p data-es="<strong>Binaural:</strong> THETA a 7.5 Hz — zona liminal. Estado de ensoñación consciente, receptividad máxima a imágenes y asociaciones espontáneas." data-en="<strong>Binaural:</strong> THETA at 7.5 Hz — liminal zone. State of conscious reverie, maximum receptivity to images and spontaneous associations."><strong>Binaural:</strong> THETA a 7.5 Hz — zona liminal. Estado de ensoñación consciente, receptividad máxima a imágenes y asociaciones espontáneas.</p>
+      <p data-es="<strong>Pausa:</strong> 20 segundos — tiempo suficiente para que cada trío de arcanos genere resonancias antes del siguiente." data-en="<strong>Pause:</strong> 20 seconds — enough time for each arcana trio to generate resonances before the next."><strong>Pausa:</strong> 20 segundos — tiempo suficiente para que cada trío de arcanos genere resonancias antes del siguiente.</p>
+      <p data-es="<strong>Repeticiones:</strong> ×7 — ciclo de siete, número con peso simbólico en la tradición del Tarot." data-en="<strong>Repetitions:</strong> ×7 — cycle of seven, a number with symbolic weight in the Tarot tradition."><strong>Repeticiones:</strong> ×7 — ciclo de siete, número con peso simbólico en la tradición del Tarot.</p>
+      <p data-es="<strong>Filtro shortwave:</strong> activo — la voz pasa por un filtro de radio de onda corta (120 Hz – 2800 Hz con saturación suave), dándole una textura analógica y distante, como una transmisión desde otro lugar." data-en="<strong>Shortwave filter:</strong> active — the voice passes through a shortwave radio filter (120 Hz – 2800 Hz with soft saturation), giving it an analogue, distant texture, like a transmission from another place."><strong>Filtro shortwave:</strong> activo — la voz pasa por un filtro de radio de onda corta (120 Hz – 2800 Hz con saturación suave), dándole una textura analógica y distante, como una transmisión desde otro lugar.</p>
+    </div>
+
+    <p data-es="Al activar el preset, los cuatro knobs se mueven solos hasta sus posiciones. Si tocas cualquier knob mientras el preset está activo, se desactiva automáticamente y recuperas el control manual."
+       data-en="When the preset is activated, the four knobs move on their own to their positions. If you touch any knob while the preset is active, it deactivates automatically and you regain manual control.">Al activar el preset, los cuatro knobs se mueven solos hasta sus posiciones. Si tocas cualquier knob mientras el preset está activo, se desactiva automáticamente y recuperas el control manual.</p>
+    <p data-es="Al desactivar el preset pulsando la estrella de nuevo, los knobs vuelven a donde estaban antes de activarlo."
+       data-en="When the preset is deactivated by pressing the star again, the knobs return to where they were before activation.">Al desactivar el preset pulsando la estrella de nuevo, los knobs vuelven a donde estaban antes de activarlo.</p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §04 IDIOMA ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="05 · Idioma" data-en="05 · Language">05 · Idioma</p>
+    <h2 class="section-title" data-es="ES / EN" data-en="ES / EN">ES / EN</h2>
+    <p data-es="El toggle de idioma cambia la lengua de la Letanía Arkana. Afecta tanto al nombre de los arcanos como a la voz sintetizada y a las conjunciones entre cartas."
+       data-en="The language toggle changes the language of the Arkana Litany. It affects the names of the arcana, the synthesised voice and the conjunctions between cards.">El toggle de idioma cambia la lengua de la Letanía Arkana. Afecta tanto al nombre de los arcanos como a la voz sintetizada y a las conjunciones entre cartas.</p>
+    <p data-es='En español: <em>"El Loco, con La Torre, y El Sol."</em><br>En inglés: <em>"The Fool, and The Tower, with The Sun."</em>'
+       data-en='In Spanish: <em>"El Loco, con La Torre, y El Sol."</em><br>In English: <em>"The Fool, and The Tower, with The Sun."</em>'>En español: <em>"El Loco, con La Torre, y El Sol."</em><br>En inglés: <em>"The Fool, and The Tower, with The Sun."</em></p>
+    <p data-es="Si cambias el idioma mientras la Letanía está sonando, la frase actual termina y el bucle reinicia en el nuevo idioma con un nuevo sorteo de arcanos."
+       data-en="If you change the language while the Litany is playing, the current phrase ends and the loop restarts in the new language with a new draw of arcana.">Si cambias el idioma mientras la Letanía está sonando, la frase actual termina y el bucle reinicia en el nuevo idioma con un nuevo sorteo de arcanos.</p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §05b MAZO ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="05b · Mazo" data-en="05b · Deck">05b · Mazo</p>
+    <h2 class="section-title" data-es="MRS / RWS" data-en="MRS / RWS">MRS / RWS</h2>
+    <p data-es="El toggle de mazo selecciona la tradición iconográfica que la Letanía usa para nombrar y mostrar los arcanos. Hay dos opciones:"
+       data-en="The deck toggle selects the iconographic tradition the Litany uses to name and display the arcana. There are two options:">El toggle de mazo selecciona la tradición iconográfica que la Letanía usa para nombrar y mostrar los arcanos. Hay dos opciones:</p>
+
+    <div class="knob-grid">
+      <div class="knob-card">
+        <div class="knob-card-name">MRS</div>
+        <div class="knob-card-title" data-es="MARSELLA" data-en="MARSEILLE">MARSELLA</div>
+        <p data-es="Tarot de Marsella — la tradición francesa clásica. Iconografía geométrica y simbólica. Los nombres de los arcanos siguen la nomenclatura tradicional del Tarot de Marsella."
+           data-en="Tarot de Marseille — the classic French tradition. Geometric and symbolic iconography. Arcana names follow the traditional Marseille Tarot nomenclature.">Tarot de Marsella — la tradición francesa clásica. Iconografía geométrica y simbólica. Los nombres de los arcanos siguen la nomenclatura tradicional del Tarot de Marsella.</p>
+      </div>
+      <div class="knob-card">
+        <div class="knob-card-name">RWS</div>
+        <div class="knob-card-title" data-es="RIDER-WAITE" data-en="RIDER-WAITE">RIDER-WAITE</div>
+        <p data-es="Rider-Waite-Smith — la tradición anglosajona del siglo XX. Escenas figurativas en todos los arcanos. Los nombres siguen la nomenclatura inglesa estándar."
+           data-en="Rider-Waite-Smith — the Anglo-Saxon 20th-century tradition. Figurative scenes on all arcana. Names follow the standard English nomenclature.">Rider-Waite-Smith — la tradición anglosajona del siglo XX. Escenas figurativas en todos los arcanos. Los nombres siguen la nomenclatura inglesa estándar.</p>
+      </div>
+    </div>
+
+    <div class="tip">
+      <div class="tip-label" data-es="Cambio en caliente" data-en="Hot swap">Cambio en caliente</div>
+      <p data-es="Puedes cambiar de mazo mientras la Letanía está sonando. El cambio se aplica en la siguiente tirada — la frase en curso termina con el mazo anterior."
+         data-en="You can switch decks while the Litany is playing. The change applies on the next draw — the current phrase finishes with the previous deck.">Puedes cambiar de mazo mientras la Letanía está sonando. El cambio se aplica en la siguiente tirada — la frase en curso termina con el mazo anterior.</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §06 QRNG ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="06 · Aleatoriedad cuántica" data-en="06 · Quantum randomness">06 · Aleatoriedad cuántica</p>
+    <h2 class="section-title" data-es="EL VACÍO<br>CUÁNTICO" data-en="THE QUANTUM<br>VACUUM">EL VACÍO<br>CUÁNTICO</h2>
+
+    <p data-es="Cada trío de arcanos que escuchas en la Letanía no es producto de un algoritmo. Las tiradas de Radio Arkana están generadas por <strong>fluctuaciones cuánticas del vacío electromagnético</strong>, medidas en tiempo real por el laboratorio QRNG de la Australian National University (ANU)."
+       data-en="Each trio of arcana you hear in the Litany is not the product of an algorithm. Radio Arkana draws are generated by <strong>quantum fluctuations of the electromagnetic vacuum</strong>, measured in real time by the ANU QRNG laboratory at the Australian National University.">Cada trío de arcanos que escuchas en la Letanía no es producto de un algoritmo. Las tiradas de Radio Arkana están generadas por <strong>fluctuaciones cuánticas del vacío electromagnético</strong>, medidas en tiempo real por el laboratorio QRNG de la Australian National University (ANU).</p>
+
+    <p data-es="El vacío cuántico no está vacío: partículas virtuales aparecen y desaparecen constantemente, generando ruido cuántico medible e impredecible incluso en principio. A diferencia de cualquier dado, cualquier algoritmo o cualquier proceso clásico, esto es <strong>aleatoriedad verdadera</strong> — no simulada."
+       data-en="The quantum vacuum is not empty: virtual particles appear and disappear constantly, generating measurable and in-principle unpredictable quantum noise. Unlike any dice, any algorithm or any classical process, this is <strong>true randomness</strong> — not simulated.">El vacío cuántico no está vacío: partículas virtuales aparecen y desaparecen constantemente, generando ruido cuántico medible e impredecible incluso en principio. A diferencia de cualquier dado, cualquier algoritmo o cualquier proceso clásico, esto es <strong>aleatoriedad verdadera</strong> — no simulada.</p>
+
+    <div class="qrng-block">
+      <div class="qrng-block-title" data-es="Cómo funciona" data-en="How it works">Cómo funciona</div>
+      <p data-es="Al pulsar play, la app solicita un lote de <strong>256 números cuánticos</strong> al servidor de Radio Arkana, que los obtiene en tiempo real del generador QRNG de la ANU. Cada número es un byte (0–255) producido por la medición de fluctuaciones del vacío electromagnético."
+         data-en="When you press play, the app requests a batch of <strong>256 quantum numbers</strong> from the Radio Arkana server, which obtains them in real time from the ANU QRNG generator. Each number is a byte (0–255) produced by measuring electromagnetic vacuum fluctuations.">Al pulsar play, la app solicita un lote de <strong>256 números cuánticos</strong> al servidor de Radio Arkana, que los obtiene en tiempo real del generador QRNG de la ANU. Cada número es un byte (0–255) producido por la medición de fluctuaciones del vacío electromagnético.</p>
+      <p data-es="Cada tirada consume 3 bytes — uno por carta. El byte se convierte en índice de arcano mediante módulo 22. Cuando el lote se agota, la app solicita uno nuevo en segundo plano de forma transparente. Cada tirada es un evento <strong>físicamente irrepetible</strong>."
+         data-en="Each draw consumes 3 bytes — one per card. The byte is converted into an arcana index via modulo 22. When the batch runs out, the app requests a new one silently in the background. Each draw is a <strong>physically unrepeatable</strong> event.">Cada tirada consume 3 bytes — uno por carta. El byte se convierte en índice de arcano mediante módulo 22. Cuando el lote se agota, la app solicita uno nuevo en segundo plano de forma transparente. Cada tirada es un evento <strong>físicamente irrepetible</strong>.</p>
+      <p data-es="No hay mazo barajado ni memoria entre tiradas: la misma carta puede aparecer varias veces seguidas, exactamente como ocurre en la naturaleza cuántica. El orden emerge del caos real, no de una permutación calculada."
+         data-en="There is no shuffled deck or memory between draws: the same card can appear several times in a row, exactly as happens in quantum nature. Order emerges from real chaos, not from a calculated permutation.">No hay mazo barajado ni memoria entre tiradas: la misma carta puede aparecer varias veces seguidas, exactamente como ocurre en la naturaleza cuántica. El orden emerge del caos real, no de una permutación calculada.</p>
+    </div>
+
+    <p data-es="El indicador en la esquina superior derecha del reproductor muestra en todo momento el origen de la aleatoriedad activa:"
+       data-en="The indicator in the top right corner of the player shows at all times the origin of the active randomness:">El indicador en la esquina superior derecha del reproductor muestra en todo momento el origen de la aleatoriedad activa:</p>
+
+    <div class="qrng-indicators">
+      <div class="qrng-ind">
+        <div class="qrng-symbol" style="color:#22c55e;">ψ</div>
+        <div>
+          <div class="qrng-ind-name" data-es="Cuántico activo" data-en="Quantum active">Cuántico activo</div>
+          <div class="qrng-ind-desc" data-es="Pool cargado. Las tiradas provienen del vacío cuántico de la ANU." data-en="Pool loaded. Draws come from the ANU quantum vacuum.">Pool cargado. Las tiradas provienen del vacío cuántico de la ANU.</div>
+        </div>
+      </div>
+      <div class="qrng-ind">
+        <div class="qrng-symbol" style="color:var(--gray);">⟳</div>
+        <div>
+          <div class="qrng-ind-name" data-es="Modo local" data-en="Local mode">Modo local</div>
+          <div class="qrng-ind-desc" data-es="Sin conexión o ANU no disponible. Fallback al generador pseudoaleatorio del dispositivo." data-en="No connection or ANU unavailable. Fallback to the device's pseudorandom generator.">Sin conexión o ANU no disponible. Fallback al generador pseudoaleatorio del dispositivo.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <div class="tip-label" data-es="Modo sin conexión" data-en="Offline mode">Modo sin conexión</div>
+      <p data-es="Si usas la app sin acceso a internet, el indicador permanece en <strong>⟳</strong> y las tiradas usan el generador pseudoaleatorio del dispositivo como fallback automático. La experiencia es idéntica — solo cambia la fuente de la aleatoriedad."
+         data-en="If you use the app without internet access, the indicator stays at <strong>⟳</strong> and draws use the device pseudorandom generator as automatic fallback. The experience is identical — only the source of randomness changes.">Si usas la app sin acceso a internet, el indicador permanece en <strong>⟳</strong> y las tiradas usan el generador pseudoaleatorio del dispositivo como fallback automático. La experiencia es idéntica — solo cambia la fuente de la aleatoriedad.</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §07 RECETAS ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="07 · Configuraciones recomendadas" data-en="07 · Recommended configurations">07 · Configuraciones recomendadas</p>
+    <h2 class="section-title" data-es="RECETAS" data-en="RECIPES">RECETAS</h2>
+    <p data-es="Algunas combinaciones probadas para distintos contextos de escucha."
+       data-en="Some proven combinations for different listening contexts.">Algunas combinaciones probadas para distintos contextos de escucha.</p>
+
+    <div class="recipe-grid">
+      <div class="recipe-card">
+        <div class="recipe-title" data-es="Para meditación" data-en="For meditation">Para meditación</div>
+        <div class="recipe-name" data-es="CONTEMPLACIÓN" data-en="CONTEMPLATION">CONTEMPLACIÓN</div>
+        <div class="recipe-settings">
+          <div class="recipe-row"><span class="recipe-key" data-es="Ruido" data-en="Noise">Ruido</span><span class="recipe-val badge badge-pink">PINK</span></div>
+          <div class="recipe-row"><span class="recipe-key">Binaural</span><span class="recipe-val badge badge-alpha">ALPHA</span></div>
+          <div class="recipe-row"><span class="recipe-key" data-es="Pausa" data-en="Pause">Pausa</span><span class="recipe-val">25s</span></div>
+          <div class="recipe-row"><span class="recipe-key" data-es="Reps" data-en="Reps">Reps</span><span class="recipe-val">×3</span></div>
+        </div>
+      </div>
+      <div class="recipe-card">
+        <div class="recipe-title" data-es="Para trabajo profundo" data-en="For deep work">Para trabajo profundo</div>
+        <div class="recipe-name">FOCO</div>
+        <div class="recipe-settings">
+          <div class="recipe-row"><span class="recipe-key" data-es="Ruido" data-en="Noise">Ruido</span><span class="recipe-val badge badge-white">WHITE</span></div>
+          <div class="recipe-row"><span class="recipe-key">Binaural</span><span class="recipe-val badge badge-beta">BETA</span></div>
+          <div class="recipe-row"><span class="recipe-key" data-es="Pausa" data-en="Pause">Pausa</span><span class="recipe-val">10s</span></div>
+          <div class="recipe-row"><span class="recipe-key" data-es="Reps" data-en="Reps">Reps</span><span class="recipe-val">×1</span></div>
+        </div>
+      </div>
+      <div class="recipe-card">
+        <div class="recipe-title" data-es="Para dormir" data-en="For sleep">Para dormir</div>
+        <div class="recipe-name" data-es="DESCENSO" data-en="DESCENT">DESCENSO</div>
+        <div class="recipe-settings">
+          <div class="recipe-row"><span class="recipe-key" data-es="Ruido" data-en="Noise">Ruido</span><span class="recipe-val badge badge-brown">BROWN</span></div>
+          <div class="recipe-row"><span class="recipe-key">Binaural</span><span class="recipe-val badge badge-delta">DELTA</span></div>
+          <div class="recipe-row"><span class="recipe-key" data-es="Pausa" data-en="Pause">Pausa</span><span class="recipe-val">25s</span></div>
+          <div class="recipe-row"><span class="recipe-key" data-es="Reps" data-en="Reps">Reps</span><span class="recipe-val">—</span></div>
+        </div>
+      </div>
+      <div class="recipe-card">
+        <div class="recipe-title" data-es="Para escritura / lectura" data-en="For writing / reading">Para escritura / lectura</div>
+        <div class="recipe-name" data-es="FLUJO" data-en="FLOW">FLUJO</div>
+        <div class="recipe-settings">
+          <div class="recipe-row"><span class="recipe-key" data-es="Ruido" data-en="Noise">Ruido</span><span class="recipe-val badge badge-pink">PINK</span></div>
+          <div class="recipe-row"><span class="recipe-key">Binaural</span><span class="recipe-val badge badge-theta">THETA</span></div>
+          <div class="recipe-row"><span class="recipe-key" data-es="Pausa" data-en="Pause">Pausa</span><span class="recipe-val">20s</span></div>
+          <div class="recipe-row"><span class="recipe-key" data-es="Reps" data-en="Reps">Reps</span><span class="recipe-val">×5</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <div class="tip-label" data-es="El preset Arkana" data-en="The Arkana Preset">El preset Arkana</div>
+      <p data-es="Es esencialmente la receta <strong>FLUJO</strong> con filtro shortwave y 7 repeticiones. Si no sabes por dónde empezar, pulsa la ★ y déjate llevar."
+         data-en="It is essentially the <strong>FLOW</strong> recipe with shortwave filter and 7 repetitions. If you are not sure where to start, press ★ and let go.">Es esencialmente la receta <strong>FLUJO</strong> con filtro shortwave y 7 repeticiones. Si no sabes por dónde empezar, pulsa la ★ y déjate llevar.</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §08 OFFLINE ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="08 · Modo offline" data-en="08 · Offline mode">08 · Modo offline</p>
+    <h2 class="section-title" data-es="SIN CONEXIÓN" data-en="NO CONNECTION">SIN CONEXIÓN</h2>
+    <p data-es="Si pierdes conexión mientras escuchas, la radio lo detecta automáticamente y aparece un aviso en la parte superior de la pantalla. El modo cambia a Letanía Arkana, que funciona completamente sin internet porque la voz se genera en tu propio dispositivo."
+       data-en="If you lose connection while listening, the radio detects it automatically and a notice appears at the top of the screen. The mode switches to Arkana Litany, which works completely without internet because the voice is generated on your own device.">Si pierdes conexión mientras escuchas, la radio lo detecta automáticamente y aparece un aviso en la parte superior de la pantalla. El modo cambia a Letanía Arkana, que funciona completamente sin internet porque la voz se genera en tu propio dispositivo.</p>
+    <p data-es="Cuando la conexión se restaura, la radio intenta reconectar al stream. Si lo logra, vuelve al directo de forma transparente, esperando a que la frase de la Letanía en curso termine antes de hacer el cambio."
+       data-en="When the connection is restored, the radio tries to reconnect to the stream. If it succeeds, it returns to live seamlessly, waiting for the current Litany phrase to finish before switching.">Cuando la conexión se restaura, la radio intenta reconectar al stream. Si lo logra, vuelve al directo de forma transparente, esperando a que la frase de la Letanía en curso termine antes de hacer el cambio.</p>
+    <p data-es="El ruido y el binaural funcionan en cualquier modo, con o sin conexión."
+       data-en="Noise and binaural work in any mode, with or without connection.">El ruido y el binaural funcionan en cualquier modo, con o sin conexión.</p>
+  </section>
+
+  <!-- ── §09 COMUNIDAD ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="09 · Comunidad imaginal" data-en="09 · Imaginal community">09 · Comunidad imaginal</p>
+    <h2 class="section-title" data-es="LOS QUE<br>ESCUCHAN" data-en="THOSE WHO<br>LISTEN">LOS QUE<br>ESCUCHAN</h2>
+    <p data-es="En la esquina derecha de la fila de estado verás un pequeño icono de persona junto a un número. Es el <strong>contador de oyentes activos</strong>: cuántas personas están escuchando Radio Arkana en este mismo momento."
+       data-en="In the right corner of the status row you will see a small person icon next to a number. It is the <strong>active listener counter</strong>: how many people are listening to Radio Arkana at this very moment.">En la esquina derecha de la fila de estado verás un pequeño icono de persona junto a un número. Es el <strong>contador de oyentes activos</strong>: cuántas personas están escuchando Radio Arkana en este mismo momento.</p>
+    <p data-es="No es una estadística. Es un recordatorio de que la Letanía no la escuchas solo. Hay otros que en este instante tienen los mismos arcanos resonando, el mismo ruido de fondo, el mismo pulso binaural. Una <strong>comunidad imaginal</strong> dispersa geográficamente pero sincronizada en el éter."
+       data-en="It is not a statistic. It is a reminder that you do not listen to the Litany alone. There are others who at this moment have the same arcana resonating, the same background noise, the same binaural pulse. An <strong>imaginal community</strong> geographically dispersed but synchronised in the ether.">No es una estadística. Es un recordatorio de que la Letanía no la escuchas solo. Hay otros que en este instante tienen los mismos arcanos resonando, el mismo ruido de fondo, el mismo pulso binaural. Una <strong>comunidad imaginal</strong> dispersa geográficamente pero sincronizada en el éter.</p>
+
+    <div class="status-list">
+      <div class="status-item">
+        <div class="status-info" style="display:flex; align-items:center; gap:14px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="color:var(--red); flex-shrink:0;"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+          <div>
+            <div class="status-name" data-es="El contador aparece al pulsar play" data-en="The counter appears when you press play">El contador aparece al pulsar play</div>
+            <div class="status-desc" data-es="Cada sesión de escucha activa suma al recuento. Se actualiza cada 30 segundos y desaparece al detener la reproducción." data-en="Each active listening session adds to the count. It updates every 30 seconds and disappears when playback is stopped.">Cada sesión de escucha activa suma al recuento. Se actualiza cada 30 segundos y desaparece al detener la reproducción.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px; border: 1px solid var(--border); background: var(--surface); padding: 20px 24px; display: flex; align-items: center; gap: 18px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="color:var(--red); flex-shrink:0;"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      <div style="flex:1;">
+        <div class="stat-label" style="font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:4px;" data-es="Escuchando ahora mismo" data-en="Listening right now">Escuchando ahora mismo</div>
+        <div style="display:flex; align-items:baseline; gap:8px;">
+          <span id="guiaListeners" style="font-family:var(--font-head); font-size:48px; line-height:1; color:var(--white);">—</span>
+          <span class="stat-unit" style="font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--gray);" data-es="oyentes activos" data-en="active listeners">oyentes activos</span>
+        </div>
+      </div>
+      <div id="guiaDot" style="width:8px; height:8px; border-radius:50%; background:var(--gray); flex-shrink:0;"></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §09b BLUESKY ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="09b · Bluesky" data-en="09b · Bluesky">09b · Bluesky</p>
+    <h2 class="section-title" data-es="SEÑALES<br>DEL <span style='color:var(--red)'>ÉTER</span>" data-en="SIGNALS<br>FROM THE <span style='color:var(--red)'>ETHER</span>">SEÑALES<br>DEL <span style="color:var(--red)">ÉTER</span></h2>
+    <p data-es="Radio Arkana tiene presencia en <strong>Bluesky</strong> — una red social construida sobre un protocolo abierto que permite integrar su contenido directamente en la app sin intermediarios ni algoritmos opacos."
+       data-en="Radio Arkana has a presence on <strong>Bluesky</strong> — a social network built on an open protocol that allows its content to be integrated directly into the app without intermediaries or opaque algorithms.">Radio Arkana tiene presencia en <strong>Bluesky</strong> — una red social construida sobre un protocolo abierto que permite integrar su contenido directamente en la app sin intermediarios ni algoritmos opacos.</p>
+    <p data-es="Desde la pantalla <strong>Comunidad</strong> (enlace en el pie de la app) puedes ver las emisiones del perfil de Radio Arkana en tiempo real y compartir tus propias tiradas con la comunidad."
+       data-en="From the <strong>Community</strong> screen (link in the app footer) you can see Radio Arkana's profile posts in real time and share your own draws with the community.">Desde la pantalla <strong>Comunidad</strong> (enlace en el pie de la app) puedes ver las emisiones del perfil de Radio Arkana en tiempo real y compartir tus propias tiradas con la comunidad.</p>
+
+    <div class="knob-card" style="margin: 28px 0 1px;">
+      <div class="knob-card-name" data-es="Feed · Emisiones" data-en="Feed · Broadcasts">Feed · Emisiones</div>
+      <div class="knob-card-title" data-es="LO QUE TRANSMITE ARKANA" data-en="WHAT ARKANA TRANSMITS">LO QUE TRANSMITE ARKANA</div>
+      <p data-es="El feed de la pantalla Comunidad muestra las publicaciones del perfil <strong>@wum1ng.bsky.social</strong> — noticias de la emisora, tiradas destacadas, anuncios de emisiones en directo y material de la tradición del Tarot de Marsella."
+         data-en="The Community screen feed shows posts from the <strong>@wum1ng.bsky.social</strong> profile — station news, featured draws, live broadcast announcements and material from the Marseille Tarot tradition.">El feed de la pantalla Comunidad muestra las publicaciones del perfil <strong>@wum1ng.bsky.social</strong> — noticias de la emisora, tiradas destacadas, anuncios de emisiones en directo y material de la tradición del Tarot de Marsella.</p>
+    </div>
+    <div class="knob-card" style="margin: 1px 0 28px; border-top: none;">
+      <div class="knob-card-name" data-es="Compartir · Tu tirada" data-en="Share · Your draw">Compartir · Tu tirada</div>
+      <div class="knob-card-title" data-es="DOCUMENTA Y PUBLICA" data-en="DOCUMENT AND PUBLISH">DOCUMENTA Y PUBLICA</div>
+      <p data-es="El botón <strong>Publicar en Bluesky</strong> abre el compositor de Bluesky con el texto pre-rellenado: el trío de arcanos activo, los hashtags <strong>#TiradaArkana</strong> y <strong>#RadioArkana</strong>, y el enlace a la emisora. Solo tienes que adjuntar la foto de sincronicidad que hayas capturado y publicar."
+         data-en="The <strong>Publish on Bluesky</strong> button opens the Bluesky composer with pre-filled text: the active arcana trio, the hashtags <strong>#TiradaArkana</strong> and <strong>#RadioArkana</strong>, and the station link. Just attach the synchronicity photo you have captured and publish.">El botón <strong>Publicar en Bluesky</strong> abre el compositor de Bluesky con el texto pre-rellenado: el trío de arcanos activo, los hashtags <strong>#TiradaArkana</strong> y <strong>#RadioArkana</strong>, y el enlace a la emisora. Solo tienes que adjuntar la foto de sincronicidad que hayas capturado y publicar.</p>
+    </div>
+
+    <div class="tip">
+      <div class="tip-label" data-es="Flujo completo" data-en="Full flow">Flujo completo</div>
+      <p data-es="<strong>1.</strong> Escucha la Letanía · <strong>2.</strong> Cuando un trío resuene con lo que ves, dispara la cámara · <strong>3.</strong> Guarda la foto · <strong>4.</strong> Ve a Comunidad · <strong>5.</strong> Pulsa Publicar en Bluesky, adjunta la foto y comparte. La imagen llevará incrustados los arcanos, tu @usuario y la fecha — un documento completo de la sincronicidad."
+         data-en="<strong>1.</strong> Listen to the Litany · <strong>2.</strong> When a trio resonates with what you see, shoot the camera · <strong>3.</strong> Save the photo · <strong>4.</strong> Go to Community · <strong>5.</strong> Press Publish on Bluesky, attach the photo and share. The image will have the arcana, your @handle and the date embedded — a complete document of the synchronicity."><strong>1.</strong> Escucha la Letanía · <strong>2.</strong> Cuando un trío resuene con lo que ves, dispara la cámara · <strong>3.</strong> Guarda la foto · <strong>4.</strong> Ve a Comunidad · <strong>5.</strong> Pulsa Publicar en Bluesky, adjunta la foto y comparte. La imagen llevará incrustados los arcanos, tu @usuario y la fecha — un documento completo de la sincronicidad.</p>
+    </div>
+
+    <div class="preset-block">
+      <div class="preset-block-title" data-es="¿No tienes cuenta en Bluesky?" data-en="No Bluesky account yet?">¿No tienes cuenta en Bluesky?</div>
+      <p data-es="Bluesky es gratuito, abierto y sin algoritmo de recomendación opaco. El registro es libre en <strong>bsky.app</strong>. A diferencia de otras redes, tus datos y tu identidad son portables — si un día decides cambiar de servidor, te llevas tus seguidores."
+         data-en="Bluesky is free, open and without an opaque recommendation algorithm. Registration is open at <strong>bsky.app</strong>. Unlike other networks, your data and identity are portable — if you ever decide to change servers, you take your followers with you.">Bluesky es gratuito, abierto y sin algoritmo de recomendación opaco. El registro es libre en <strong>bsky.app</strong>. A diferencia de otras redes, tus datos y tu identidad son portables — si un día decides cambiar de servidor, te llevas tus seguidores.</p>
+      <p>
+        <a href="https://bsky.app/profile/wum1ng.bsky.social" target="_blank" rel="noopener"
+           style="color:var(--red); text-decoration:none; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; border-bottom:1px solid var(--red-dim); padding-bottom:2px; transition:border-color 0.2s;"
+           onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--red-dim)'"
+           data-es="Seguir a Radio Arkana en Bluesky →" data-en="Follow Radio Arkana on Bluesky →">Seguir a Radio Arkana en Bluesky →</a>
+      </p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §10 PWA ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="10 · Instalación" data-en="10 · Installation">10 · Instalación</p>
+    <h2 class="section-title" data-es="INSTALAR<br>LA APP" data-en="INSTALL<br>THE APP">INSTALAR<br>LA APP</h2>
+    <p data-es="Radio Arkana puede instalarse como aplicación en tu dispositivo, sin pasar por ninguna tienda. En Chrome y Edge verás un aviso en la parte inferior de la pantalla al cabo de unos segundos de escucha. En iOS, usa el botón de compartir de Safari y selecciona <strong>Añadir a pantalla de inicio</strong>."
+       data-en="Radio Arkana can be installed as an application on your device, without going through any store. In Chrome and Edge you will see a prompt at the bottom of the screen after a few seconds of listening. On iOS, use the Safari share button and select <strong>Add to Home Screen</strong>.">Radio Arkana puede instalarse como aplicación en tu dispositivo, sin pasar por ninguna tienda. En Chrome y Edge verás un aviso en la parte inferior de la pantalla al cabo de unos segundos de escucha. En iOS, usa el botón de compartir de Safari y selecciona <strong>Añadir a pantalla de inicio</strong>.</p>
+
+    <div class="preset-block">
+      <div class="preset-block-title" data-es="Conectada al éter arkano" data-en="Connected to the arkanic ether">Conectada al éter arkano</div>
+      <p data-es="Una vez instalada, la app funciona aunque no tengas conexión a internet. El stream en directo requiere señal, pero la <strong>Letanía Arkana</strong> — la voz, el ruido generativo, el binaural — se genera completamente en tu dispositivo."
+         data-en="Once installed, the app works even without an internet connection. The live stream requires signal, but the <strong>Arkana Litany</strong> — the voice, the generative noise, the binaural — is generated entirely on your device.">Una vez instalada, la app funciona aunque no tengas conexión a internet. El stream en directo requiere señal, pero la <strong>Letanía Arkana</strong> — la voz, el ruido generativo, el binaural — se genera completamente en tu dispositivo.</p>
+      <p data-es="Sin servidor. Sin red. Solo tú, los arcanos y el éter."
+         data-en="No server. No network. Just you, the arcana and the ether.">Sin servidor. Sin red. Solo tú, los arcanos y el éter.</p>
+    </div>
+
+    <!-- Botón PWA -->
+    <div id="pwaInstallWrap" style="margin: 24px 0; display:none;">
+      <button id="pwaInstallBtn" style="width:100%; background:transparent; border:1px solid var(--red); color:var(--white); font-family:var(--font-body); font-size:11px; letter-spacing:0.3em; text-transform:uppercase; padding:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:12px; transition:all 0.2s;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v13M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        <span data-es="Instalar Radio Arkana" data-en="Install Radio Arkana">Instalar Radio Arkana</span>
+      </button>
+    </div>
+
+    <!-- iOS -->
+    <div id="pwaIosMsg" style="margin:24px 0; display:none; border:1px solid var(--border); background:var(--surface); padding:18px 22px;">
+      <div style="font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--amber); margin-bottom:8px;">iOS · Safari</div>
+      <p style="font-size:11px; color:#8a8278; line-height:1.9; margin:0;"
+         data-es='Pulsa el botón de compartir <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin:0 3px;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> en Safari y selecciona <strong style="color:var(--white);">Añadir a pantalla de inicio</strong>.'
+         data-en='Tap the share button <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin:0 3px;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> in Safari and select <strong style="color:var(--white);">Add to Home Screen</strong>.'>Pulsa el botón de compartir <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin:0 3px;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> en Safari y selecciona <strong style="color:var(--white);">Añadir a pantalla de inicio</strong>.</p>
+    </div>
+
+    <!-- Ya instalada -->
+    <div id="pwaInstalledMsg" style="margin:24px 0; display:none; border:1px solid var(--border); background:var(--surface); padding:18px 22px;">
+      <div style="font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--red); margin-bottom:8px;" data-es="App instalada" data-en="App installed">App instalada</div>
+      <p style="font-size:11px; color:#8a8278; line-height:1.9; margin:0;" data-es="Radio Arkana ya está instalada en este dispositivo." data-en="Radio Arkana is already installed on this device.">Radio Arkana ya está instalada en este dispositivo.</p>
+    </div>
+
+    <div class="tip">
+      <div class="tip-label" data-es="Compatibilidad" data-en="Compatibility">Compatibilidad</div>
+      <p data-es="La instalación como PWA funciona en <strong>Chrome, Edge y Firefox</strong> en escritorio y Android. En iOS requiere <strong>Safari</strong> — otros navegadores de iPhone no ofrecen la opción de instalación."
+         data-en="Installation as a PWA works in <strong>Chrome, Edge and Firefox</strong> on desktop and Android. On iOS it requires <strong>Safari</strong> — other iPhone browsers do not offer the installation option.">La instalación como PWA funciona en <strong>Chrome, Edge y Firefox</strong> en escritorio y Android. En iOS requiere <strong>Safari</strong> — otros navegadores de iPhone no ofrecen la opción de instalación.</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §11 FUNDAMENTOS ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="11 · Para saber más" data-en="11 · To learn more">11 · Para saber más</p>
+    <h2 class="section-title" data-es="FUNDAMENTOS" data-en="FOUNDATIONS">FUNDAMENTOS</h2>
+    <p data-es="Si quieres entender qué hay detrás de Radio Arkana — por qué los arcanos, por qué la repetición, por qué el estado liminal — existe un texto que explica los fundamentos teóricos del proyecto."
+       data-en="If you want to understand what lies behind Radio Arkana — why the arcana, why the repetition, why the liminal state — there is a text that explains the theoretical foundations of the project.">Si quieres entender qué hay detrás de Radio Arkana — por qué los arcanos, por qué la repetición, por qué el estado liminal — existe un texto que explica los fundamentos teóricos del proyecto.</p>
+    <div class="preset-block">
+      <div class="preset-block-title" data-es="El Fenómeno de Inducción Imaginativa" data-en="The Imaginative Induction Phenomenon">El Fenómeno de Inducción Imaginativa</div>
+      <p data-es="Un ensayo sobre los mecanismos de la imaginación inducida, el papel del símbolo en estados alterados de conciencia y la lógica detrás del sistema Arkana."
+         data-en="An essay on the mechanisms of induced imagination, the role of the symbol in altered states of consciousness and the logic behind the Arkana system.">Un ensayo sobre los mecanismos de la imaginación inducida, el papel del símbolo en estados alterados de conciencia y la lógica detrás del sistema Arkana.</p>
+      <p>
+        <a href="https://mirageatrois.substack.com/p/el-fenomeno-de-induccion-imaginativa" target="_blank" rel="noopener"
+           style="color:var(--red); text-decoration:none; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; border-bottom:1px solid var(--red-dim); padding-bottom:2px; transition:border-color 0.2s;"
+           onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--red-dim)'"
+           data-es="Leer en Substack →" data-en="Read on Substack →">Leer en Substack →</a>
+      </p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <footer class="site-footer">
+    <span>Radio Arkana © 2026</span>
+    <span>@mirage_a_trois</span>
+  </footer>
+
+</div>
+
+<script>
+  const WORKER_URL = 'https://gentle-glitter-2552.oscardevalle.workers.dev';
+
+  // ── SISTEMA DE TRADUCCIÓN ──────────────────────────────────────────────────
+  let currentLang = localStorage.getItem('guide-lang') || 'es';
+
+  function setLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('guide-lang', lang);
+
+    document.documentElement.lang = lang;
+    document.getElementById('btnES').classList.toggle('active', lang === 'es');
+    document.getElementById('btnEN').classList.toggle('active', lang === 'en');
+    document.getElementById('btnES').setAttribute('aria-pressed', lang === 'es');
+    document.getElementById('btnEN').setAttribute('aria-pressed', lang === 'en');
+
+    // Fade out
+    document.body.style.opacity = '0.6';
+    document.body.style.transition = 'opacity 0.15s ease';
+
+    setTimeout(() => {
+      // Traducir todos los elementos con data-es / data-en
+      document.querySelectorAll('[data-es][data-en]').forEach(el => {
+        const val = el.getAttribute(`data-${lang}`);
+        if (val !== null) el.innerHTML = val;
+      });
+
+      // Título de la página
+      document.title = lang === 'es'
+        ? 'Radio Arkana · Guía de Usuario'
+        : 'Radio Arkana · User Guide';
+
+      document.body.style.opacity = '1';
+    }, 150);
+  }
+
+  // Aplicar idioma guardado al cargar
+  setLang(currentLang);
+
+  // ── CONTADOR DE OYENTES EN VIVO ────────────────────────────────────────────
+  const listenersEl = document.getElementById('guiaListeners');
+  const dotEl       = document.getElementById('guiaDot');
+
+  async function fetchListeners() {
+    try {
+      const res  = await fetch(`${WORKER_URL}/ping`, { cache: 'no-store' });
+      const data = await res.json();
+      const n    = data.listeners ?? 0;
+      listenersEl.textContent = n;
+      if (n > 0) {
+        dotEl.style.background = 'var(--red)';
+        dotEl.style.boxShadow  = '0 0 8px var(--red)';
+        dotEl.style.animation  = 'pulse 1.4s infinite';
+      } else {
+        dotEl.style.background = 'var(--gray)';
+        dotEl.style.boxShadow  = 'none';
+        dotEl.style.animation  = 'none';
+      }
+    } catch(e) {
+      listenersEl.textContent = '—';
+    }
+  }
+
+  // Sube a 60 s para alinear con el polling del player y no malgastar cuota.
+  fetchListeners();
+  setInterval(fetchListeners, 60000);
+
+  // ── PWA INSTALL ────────────────────────────────────────────────────────────
+  const installWrap  = document.getElementById('pwaInstallWrap');
+  const installBtn   = document.getElementById('pwaInstallBtn');
+  const iosMsg       = document.getElementById('pwaIosMsg');
+  const installedMsg = document.getElementById('pwaInstalledMsg');
+  let deferredPrompt = null;
+
+  if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+    installedMsg.style.display = 'block';
+  } else {
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) iosMsg.style.display = 'block';
+  }
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installWrap.style.display = 'block';
+    iosMsg.style.display = 'none';
+  });
+
+  installBtn.addEventListener('mouseover', () => installBtn.style.background = 'rgba(230,48,48,0.1)');
+  installBtn.addEventListener('mouseout',  () => installBtn.style.background = 'transparent');
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installWrap.style.display = 'none';
+    if (outcome === 'accepted') installedMsg.style.display = 'block';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installWrap.style.display  = 'none';
+    installedMsg.style.display = 'block';
+    deferredPrompt = null;
+  });
+
+  // ── SCROLL FADE-IN ─────────────────────────────────────────────────────────
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
