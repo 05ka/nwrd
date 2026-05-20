@@ -898,7 +898,7 @@
     try {
       const ctrl = new AbortController();
       const tid  = setTimeout(() => ctrl.abort(), 5000);
-      const res  = await fetch(`${WORKER_URL}/ping`, { method: 'GET', cache: 'no-store', signal: ctrl.signal });
+      const res  = await fetch(`${WORKER_URL}/ping?s=${encodeURIComponent(ARKANA_SID)}`, { method: 'GET', cache: 'no-store', signal: ctrl.signal });
       clearTimeout(tid);
       if (!isPlaying || currentMode !== 'TTS' || myWatchdog !== watchdogId) return;
       if (res.ok) {
@@ -1239,12 +1239,26 @@
   }
 
   // ── PING ───────────────────────────────────────────────────────────────────
-  // El Worker deriva el contador y el estado en directo del status de Icecast,
-  // no de KV — ya no enviamos join/heartbeat/leave por cliente.
+  // Presencia: el Worker mantiene un Map en memoria con las sesiones que han
+  // pingeado en los últimos 120 s. Contamos stream + TTS + cualquier modo
+  // activo — métrica honesta de "cuántos estamos aquí ahora mismo".
+  //
+  // sessionId persistente por pestaña (sessionStorage). Si la pestaña se
+  // cierra o se queda en background sin pings durante > 120 s, la sesión
+  // expira sola en el Worker.
+  const ARKANA_SID = (() => {
+    let s = sessionStorage.getItem('arkana-sid');
+    if (!s) {
+      s = (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36));
+      sessionStorage.setItem('arkana-sid', s);
+    }
+    return s;
+  })();
+
   let pingInterval = null;
   async function sendPing() {
     try {
-      const res  = await fetch(`${WORKER_URL}/ping`, { method: 'GET', cache: 'no-store' });
+      const res  = await fetch(`${WORKER_URL}/ping?s=${encodeURIComponent(ARKANA_SID)}`, { method: 'GET', cache: 'no-store' });
       const data = await res.json();
       document.getElementById('listenersCount').textContent = data.listeners ?? 0;
       document.getElementById('listenersDisplay').style.opacity = '1';
