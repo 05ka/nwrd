@@ -499,11 +499,6 @@
       <svg id="playIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       <span id="playLabel">Play</span>
     </button>
-    <div class="handle-row" id="handleRow">
-      <span class="handle-prefix">@</span>
-      <input type="text" id="handleInput" class="handle-input" placeholder="tu_usuario" maxlength="32" autocomplete="off" spellcheck="false">
-    </div>
-    <p class="handle-hint" id="handleHint"></p>
     <div class="volume-row" id="volRow">
       <span class="vol-label">VOL</span>
       <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" oninput="updateVolume(this.value)">
@@ -819,9 +814,8 @@
     requestWakeLock();
     startListenersCounter();
     startMarqueePolling();
-    document.getElementById('handleRow').classList.add('hidden');
-    document.getElementById('handleHint').classList.add('hidden');
     fillQuantumPool();
+    if (window._armInstallBanner) window._armInstallBanner();
     tryStream();
   }
 
@@ -839,7 +833,7 @@
     dot.className          = 'dot';
     statusText.textContent = 'Desconectado';
     statusText.className   = '';
-    modeLabel.textContent  = 'Sistema offline';
+    modeLabel.textContent  = 'offline';
     playLabel.textContent  = 'Play';
     playIcon.innerHTML     = '<path d="M8 5v14l11-7z"/>';
     document.title = 'Radio Arkana · Tarot Underground · Málaga';
@@ -848,8 +842,6 @@
     document.getElementById('btnCamera').classList.remove('visible');
     stopListenersCounter();
     stopMarqueePolling();
-    document.getElementById('handleRow').classList.remove('hidden');
-    document.getElementById('handleHint').classList.remove('hidden');
     if (window._pendingSWUpdate) { activateNewSW(window._pendingSWUpdate); window._pendingSWUpdate = null; }
     quantumPool = [];
     setQrngIndicator('local');
@@ -885,15 +877,15 @@
     const myAttempt = ++attemptId;
     currentMode = 'LOADING';
     statusText.textContent = 'Sincronizando...'; statusText.className = 'syncing';
-    modeLabel.textContent  = 'Conectando...'; dot.className = 'dot syncing';
+    modeLabel.textContent  = 'sintonizando'; dot.className = 'dot syncing';
     playConnectBeep();
     const audio = freshAudio();
     audio.onplaying = () => {
       if (!isPlaying || myAttempt !== attemptId || currentMode === 'TTS') return;
       currentMode = 'STREAM';
       clearTimeout(initialConnectTimer); clearTimeout(stallTimer);
-      dot.className = 'dot live'; statusText.textContent = 'En directo'; statusText.className = 'live';
-      modeLabel.textContent = 'ON AIR'; setRepLabels('Señal estable', null, true, false);
+      dot.className = 'dot live'; statusText.textContent = 'En antena'; statusText.className = 'live';
+      modeLabel.textContent = 'en directo'; setRepLabels('Señal estable', null, true, false);
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       audioCtx.resume(); connectStreamToAnalyser(audio); startWaveform();
     };
@@ -913,7 +905,7 @@
     currentMode = 'TTS'; attemptId++; watchdogId++;
     clearAllTimers(); freshAudio();
     dot.className = 'dot tts'; statusText.textContent = 'Letanía Arkana'; statusText.className = '';
-    modeLabel.textContent = 'Arkana live';
+    modeLabel.textContent = 'letanía';
     initGenerativeAudio(); ensureAnalyser(); startWaveform(); runTTSLoop(); scheduleWatchdog();
   }
 
@@ -1219,8 +1211,6 @@
     document.getElementById('langEN').classList.toggle('active',lang==='en');
     document.getElementById('langES').setAttribute('aria-pressed',lang==='es');
     document.getElementById('langEN').setAttribute('aria-pressed',lang==='en');
-    const hint = document.getElementById('handleHint');
-    if (hint) hint.textContent = lang === 'es' ? 'Introduce un @ si deseas firmar tus fotos' : 'Add your @ to sign your Arkana photos';
     if (currentMode==='TTS'&&isPlaying) { repCount=0;currentTrio=[];window.speechSynthesis.cancel();clearTimeout(ttsTimer);clearInterval(countdownInterval);ttsSpeaking=false;ttsTimer=setTimeout(runTTSLoop,400); }
   }
   (function initLangToggle() {
@@ -1495,11 +1485,8 @@
   document.getElementById('previewExit').addEventListener('click',exitCamera);
   setInterval(()=>{if(document.getElementById('cameraModal').classList.contains('active'))updateCameraHUD();},1000);
 
-  // ── HANDLE ─────────────────────────────────────────────────────────────────
-  const handleInput=document.getElementById('handleInput'),handleHint=document.getElementById('handleHint');
-  handleHint.textContent=currentLang==='es'?'Introduce un @ si deseas firmar tus fotos':'Add your @ to sign your Arkana photos';
-  handleInput.value=localStorage.getItem('arkana-handle')||'';
-  handleInput.addEventListener('input',()=>{const val=handleInput.value.replace(/[@\s]/g,'').slice(0,32);handleInput.value=val;localStorage.setItem('arkana-handle',val);});
+  // El handle (@usuario) se gestiona ahora exclusivamente desde /camera.html
+  // donde tiene contexto real. Se sigue compartiendo vía localStorage.arkana-handle.
 
   // ── INSTANT SHOT ───────────────────────────────────────────────────────────
   let instantMode=localStorage.getItem('arkana-instant')==='1';
@@ -1545,11 +1532,44 @@
   });
 
   // ── PWA INSTALL ────────────────────────────────────────────────────────────
+  // Banner diferido: sólo se muestra cuando el usuario ya ha entendido la app
+  // — i.e. ha pulsado Play al menos una vez Y ha estado escuchando ≥60 s.
+  // Antes de eso pedirle instalar es prematuro.
   let deferredInstallPrompt=null,deferredCamInstallPrompt=null;
+  let _installBannerShown=false, _installBannerTimer=null;
   const installBanner=document.getElementById('installBanner'),installBtn=document.getElementById('installBtn');
   const installCamBtn=document.getElementById('installCamBtn'),camInstallLine=document.getElementById('camInstallLine');
   const installDismiss=document.getElementById('installDismiss');
-  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();if(!deferredInstallPrompt)deferredInstallPrompt=e;if(!localStorage.getItem('pwa-dismissed')){setTimeout(()=>{installBanner.classList.add('visible');camInstallLine.style.display='block';installCamBtn.style.display='block';},3000);}});
+
+  function _maybeShowInstallBanner() {
+    if (_installBannerShown) return;
+    if (!deferredInstallPrompt) return;
+    if (localStorage.getItem('pwa-dismissed') === '1') return;
+    if (localStorage.getItem('arkana-played') !== '1') return;
+    _installBannerShown = true;
+    installBanner.classList.add('visible');
+    camInstallLine.style.display='block';
+    installCamBtn.style.display='block';
+  }
+
+  // Trigger desde start() del player. Si beforeinstallprompt aún no ha llegado,
+  // _maybeShowInstallBanner sale silenciosamente y se reintenta cuando llegue.
+  window._armInstallBanner = function() {
+    localStorage.setItem('arkana-played','1');
+    clearTimeout(_installBannerTimer);
+    _installBannerTimer = setTimeout(_maybeShowInstallBanner, 60000);
+  };
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    if (!deferredInstallPrompt) deferredInstallPrompt = e;
+    // Si el usuario ya escuchó alguna vez en una sesión anterior, mostrar tras un breve respiro.
+    if (localStorage.getItem('arkana-played') === '1') {
+      clearTimeout(_installBannerTimer);
+      _installBannerTimer = setTimeout(_maybeShowInstallBanner, 5000);
+    }
+  });
+
   installBtn.addEventListener('click',async()=>{if(!deferredInstallPrompt)return;installBanner.classList.remove('visible');deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;});
   installCamBtn.addEventListener('click',()=>{installBanner.classList.remove('visible');window.open('/camera.html','_blank');});
   installDismiss.addEventListener('click',()=>{installBanner.classList.remove('visible');localStorage.setItem('pwa-dismissed','1');});
@@ -1889,6 +1909,11 @@
   })();
 
 </script>
+<!-- Arkana Hand · módulo AR de gestos con MediaPipe — DESACTIVADO temporalmente.
+     Cuando esté listo, descomenta la línea de abajo. El archivo /arkana-hand.js
+     sigue en el repo y se autoinyecta el botón #btnHand al cargar.
 <script src="/arkana-hand.js" defer></script>
+-->
+
 </body>
 </html>
