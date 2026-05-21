@@ -101,8 +101,9 @@
     .slot-label.target { color: var(--red); }
 
     /* ── CARD ───────────────────────────────────────────── */
+    /* aspect-ratio coincide con los JPG reales (205x397 marsella, 205x385 rider) */
     .card-frame {
-      position: relative; width: 100%; aspect-ratio: 5 / 8;
+      position: relative; width: 100%; aspect-ratio: 205 / 390;
       perspective: 800px; cursor: pointer;
     }
     .card-frame.locked { cursor: default; }
@@ -117,7 +118,7 @@
       background: #0d0d0d; box-shadow: 0 4px 18px rgba(0,0,0,0.6);
     }
     .card-face.back { transform: rotateY(180deg); }
-    .card-face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .card-face img { width: 100%; height: 100%; object-fit: contain; display: block; background: #0d0d0d; }
     .card-face.empty {
       display: flex; align-items: center; justify-content: center;
       background: radial-gradient(ellipse at center, #1a1a1a 0%, #050505 70%);
@@ -203,7 +204,7 @@
       display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
     }
     .catalyst-card {
-      aspect-ratio: 5 / 8; border: 1px solid var(--border); border-radius: 4px;
+      aspect-ratio: 205 / 390; border: 1px solid var(--border); border-radius: 4px;
       overflow: hidden; background: #0d0d0d;
       box-shadow: 0 0 14px rgba(230,48,48,0.08);
       animation: catalystIn 0.5s cubic-bezier(.22,.9,.3,1) backwards;
@@ -211,7 +212,7 @@
     .catalyst-card.empty { background: repeating-linear-gradient(45deg, #0a0a0a 0 6px, #111 6px 12px); }
     .catalyst-card:nth-child(2) { animation-delay: 0.08s; }
     .catalyst-card:nth-child(3) { animation-delay: 0.16s; }
-    .catalyst-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .catalyst-card img { width: 100%; height: 100%; object-fit: contain; display: block; background: #0d0d0d; }
     @keyframes catalystIn {
       from { opacity: 0; transform: translateY(8px) scale(0.96); }
       to { opacity: 1; transform: translateY(0) scale(1); }
@@ -308,12 +309,12 @@
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
     }
     .picker-item {
-      aspect-ratio: 5 / 8; border: 1px solid var(--border); border-radius: 3px;
+      aspect-ratio: 205 / 390; border: 1px solid var(--border); border-radius: 3px;
       overflow: hidden; cursor: pointer; background: #0d0d0d;
       transition: border-color 0.15s, transform 0.1s;
       position: relative;
     }
-    .picker-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .picker-item img { width: 100%; height: 100%; object-fit: contain; display: block; background: #0d0d0d; }
     .picker-item:hover { border-color: var(--red); }
     .picker-item.selected { border-color: var(--red); box-shadow: 0 0 8px rgba(230,48,48,0.5); }
     .picker-item .pick-name {
