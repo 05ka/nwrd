@@ -555,6 +555,11 @@
           <button class="lang-opt" id="deckRider" onclick="setDeck('rider')" aria-pressed="false">RWS</button>
         </div>
         <span class="ctrl-sep"></span>
+        <div class="lang-toggle" role="group" aria-label="Tamaño de baraja" title="Cuantas cartas en la Letanía: solo 22 mayores o los 78 arcanos">
+          <button class="lang-opt active" id="size22" onclick="setDeckSize(22)" aria-pressed="true">22</button>
+          <button class="lang-opt" id="size78" onclick="setDeckSize(78)" aria-pressed="false">78</button>
+        </div>
+        <span class="ctrl-sep"></span>
         <button class="layer-btn" id="btnCamera" onclick="openCamera()" title="Capturar sincronicidad" aria-label="Capturar sincronicidad">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -588,23 +593,56 @@
   const WORKER_URL = 'https://gentle-glitter-2552.oscardevalle.workers.dev';
 
   // ── DECKS ──────────────────────────────────────────────────────────────────
+  // 22 majors (idx 0..21) + 56 minors (idx 22..77) construidos programáticamente.
+  // Orden de palos: Bastos/Wands → Copas/Cups → Oros/Pentacles → Espadas/Swords.
+  const MAJORS_ES_M = ["El Loco","El Mago","La Papisa","La Emperatriz","El Emperador","El Papa","El Enamorado","El Carro","La Fuerza","El Ermitaño","La Rueda de la Fortuna","La Justicia","El Colgado","La Muerte","La Templanza","El Diablo","La Torre","La Estrella","La Luna","El Sol","El Juicio","El Mundo"];
+  const MAJORS_ES_R = ["El Loco","El Mago","La Sacerdotisa","La Emperatriz","El Emperador","El Papa","Los Enamorados","El Carro","La Fuerza","El Ermitaño","La Rueda de la Fortuna","La Justicia","El Colgado","La Muerte","La Templanza","El Diablo","La Torre","La Estrella","La Luna","El Sol","El Juicio","El Mundo"];
+  const MAJORS_EN_M = ["The Fool","The Magician","The Papess","The Empress","The Emperor","The Pope","The Lover","The Chariot","Strength","The Hermit","The Wheel of Fortune","The Justice","The Hanged Man","Death","The Temperance","The Devil","The Tower","The Star","The Moon","The Sun","The Judgement","The World"];
+  const MAJORS_EN_R = ["The Fool","The Magician","The High Priestess","The Empress","The Emperor","The Hierophant","The Lovers","The Chariot","Strength","The Hermit","The Wheel of Fortune","The Justice","The Hanged Man","Death","The Temperance","The Devil","The Tower","The Star","The Moon","The Sun","The Judgement","The World"];
+  const MAJORS_SLUG_M = ["el-loco","el-mago","la-papisa","la-emperatriz","el-emperador","el-papa","el-enamorado","el-carro","la-fuerza","el-ermitano","la-rueda-de-la-fortuna","la-justicia","el-colgado","la-muerte","la-templanza","el-diablo","la-torre","la-estrella","la-luna","el-sol","el-juicio","el-mundo"];
+  const MAJORS_SLUG_R = ["the-fool","the-magician","the-high-priestess","the-empress","the-emperor","the-hierophant","the-lovers","the-chariot","strength","the-hermit","wheel-of-fortune","justice","the-hanged-man","death","temperance","the-devil","the-tower","the-star","the-moon","the-sun","judgement","the-world"];
+  function _buildMinors() {
+    const SUIT_M  = ['bastos','copas','oros','espadas'];
+    const SUIT_R  = ['wands','cups','pentacles','swords'];
+    const SUIT_ES = ['Bastos','Copas','Oros','Espadas'];
+    const SUIT_EN = ['Wands','Cups','Pentacles','Swords'];
+    const RANK_M  = ['as','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','sota','caballero','reina','rey'];
+    const RANK_R  = ['ace','two','three','four','five','six','seven','eight','nine','ten','page','knight','queen','king'];
+    const RANK_ES = ['As','Dos','Tres','Cuatro','Cinco','Seis','Siete','Ocho','Nueve','Diez','Sota','Caballero','Reina','Rey'];
+    const RANK_EN = ['Ace','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Page','Knight','Queen','King'];
+    const out = { es: [], en: [], slugM: [], slugR: [] };
+    for (let s = 0; s < 4; s++) {
+      for (let r = 0; r < 14; r++) {
+        out.es.push(`${RANK_ES[r]} de ${SUIT_ES[s]}`);
+        out.en.push(`${RANK_EN[r]} of ${SUIT_EN[s]}`);
+        out.slugM.push(`${SUIT_M[s]}-${RANK_M[r]}`);
+        out.slugR.push(`${RANK_R[r]}-of-${SUIT_R[s]}`);
+      }
+    }
+    return out;
+  }
+  const _MIN = _buildMinors();
   const DECKS = {
     marsella: {
-      es: ["El Loco","El Mago","La Papisa","La Emperatriz","El Emperador","El Papa","El Enamorado","El Carro","La Fuerza","El Ermitaño","La Rueda de la Fortuna","La Justicia","El Colgado","La Muerte","La Templanza","El Diablo","La Torre","La Estrella","La Luna","El Sol","El Juicio","El Mundo"],
-      en: ["The Fool","The Magician","The Papess","The Empress","The Emperor","The Pope","The Lover","The Chariot","Strength","The Hermit","The Wheel of Fortune","The Justice","The Hanged Man","Death","The Temperance","The Devil","The Tower","The Star","The Moon","The Sun","The Judgement","The World"],
-      slugs: ["el-loco","el-mago","la-papisa","la-emperatriz","el-emperador","el-papa","el-enamorado","el-carro","la-fuerza","el-ermitano","la-rueda-de-la-fortuna","la-justicia","el-colgado","la-muerte","la-templanza","el-diablo","la-torre","la-estrella","la-luna","el-sol","el-juicio","el-mundo"],
-      path: '/cartas'
+      es:    [...MAJORS_ES_M,   ..._MIN.es],
+      en:    [...MAJORS_EN_M,   ..._MIN.en],
+      slugs: [...MAJORS_SLUG_M, ..._MIN.slugM],
+      path:  '/cartas'
     },
     rider: {
-      es: ["El Loco","El Mago","La Sacerdotisa","La Emperatriz","El Emperador","El Papa","Los Enamorados","El Carro","La Fuerza","El Ermitaño","La Rueda de la Fortuna","La Justicia","El Colgado","La Muerte","La Templanza","El Diablo","La Torre","La Estrella","La Luna","El Sol","El Juicio","El Mundo"],
-      en: ["The Fool","The Magician","The High Priestess","The Empress","The Emperor","The Hierophant","The Lovers","The Chariot","Strength","The Hermit","The Wheel of Fortune","The Justice","The Hanged Man","Death","The Temperance","The Devil","The Tower","The Star","The Moon","The Sun","The Judgement","The World"],
-      slugs: ["the-fool","the-magician","the-high-priestess","the-empress","the-emperor","the-hierophant","the-lovers","the-chariot","the-strength","the-hermit","the-wheel-of-fortune","the-justice","the-hanged-man","the-death","the-temperance","the-devil","the-tower","the-star","the-moon","the-sun","the-judgement","the-world"],
-      path: '/cartas/rider'
+      es:    [...MAJORS_ES_R,   ..._MIN.es],
+      en:    [...MAJORS_EN_R,   ..._MIN.en],
+      slugs: [...MAJORS_SLUG_R, ..._MIN.slugR],
+      path:  '/cartas/rider'
     }
   };
 
   const _savedDeck = localStorage.getItem('arkana-deck');
   let currentDeck = (_savedDeck === 'rider' || _savedDeck === 'marsella') ? _savedDeck : 'marsella';
+
+  // Tamaño de baraja activo para la Letanía: 22 (solo mayores) o 78 (mazo completo).
+  const _savedSize = localStorage.getItem('arkana-deck-size');
+  let deckSize = (_savedSize === '78') ? 78 : 22;
 
   // CARDS y CARD_SLUGS_ES son alias dinámicos que apuntan al deck activo
   let CARDS = { es: DECKS[currentDeck].es, en: DECKS[currentDeck].en };
@@ -1056,8 +1094,9 @@
 
   function drawTrio() {
     const cards = CARDS[currentLang];
+    const n = deckSize;
     let i0, i1, i2;
-    do { i0 = getQuantumIndex(22); i1 = getQuantumIndex(22); i2 = getQuantumIndex(22); }
+    do { i0 = getQuantumIndex(n); i1 = getQuantumIndex(n); i2 = getQuantumIndex(n); }
     while (i0 === i1 || i0 === i2 || i1 === i2);
     return [ cards[i0], cards[i1], cards[i2] ];
   }
@@ -1252,6 +1291,25 @@
     document.getElementById('deckRider').classList.toggle('active', currentDeck === 'rider');
     document.getElementById('deckMarsella').setAttribute('aria-pressed', currentDeck === 'marsella');
     document.getElementById('deckRider').setAttribute('aria-pressed', currentDeck === 'rider');
+  })();
+
+  // ── DECK SIZE (22 mayores · 78 completos) ──────────────────────────────────
+  function setDeckSize(n) {
+    n = (n === 78) ? 78 : 22;
+    if (n === deckSize) return;
+    deckSize = n;
+    localStorage.setItem('arkana-deck-size', String(n));
+    document.getElementById('size22').classList.toggle('active', n === 22);
+    document.getElementById('size78').classList.toggle('active', n === 78);
+    document.getElementById('size22').setAttribute('aria-pressed', n === 22);
+    document.getElementById('size78').setAttribute('aria-pressed', n === 78);
+    // El cambio se aplica al próximo trio — el actual termina con el tamaño previo.
+  }
+  (function initDeckSizeToggle() {
+    document.getElementById('size22').classList.toggle('active', deckSize === 22);
+    document.getElementById('size78').classList.toggle('active', deckSize === 78);
+    document.getElementById('size22').setAttribute('aria-pressed', deckSize === 22);
+    document.getElementById('size78').setAttribute('aria-pressed', deckSize === 78);
   })();
 
   function updateVolume(v) {

@@ -89,6 +89,25 @@
     .qrng-dot.quantum { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.55); }
     .qrng-dot.local   { background: var(--amber); box-shadow: 0 0 6px rgba(206,157,6,0.5); }
 
+    /* ── SIZE BAR (Trigger / Target pool toggles) ─────────── */
+    .size-bar {
+      background: var(--surface); border: 1px solid var(--border); border-top: none;
+      padding: 8px 16px; display: flex; justify-content: space-around; gap: 12px;
+    }
+    .size-group { display: flex; align-items: center; gap: 8px; }
+    .size-label {
+      font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gray);
+    }
+    /* dark variant of h-btn for use outside the red header */
+    .h-btn.dark {
+      color: var(--gray);
+      padding: 4px 9px;
+    }
+    .h-btn.dark + .h-btn.dark { border-left: 1px solid var(--border); }
+    .h-btn.dark.active { background: rgba(230,48,48,0.12); color: var(--red); }
+    .h-btn.dark:not(.active):hover { color: var(--white); background: rgba(255,255,255,0.03); }
+    .h-toggle:has(.dark) { border-color: var(--border); background: transparent; }
+
     /* ── BOARD ──────────────────────────────────────────── */
     .board {
       background: var(--surface); border: 1px solid var(--border); border-top: none;
@@ -310,6 +329,13 @@
     .picker-grid {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
     }
+    .picker-group-head {
+      grid-column: 1 / -1;
+      font-size: 8px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--red); padding: 8px 0 4px;
+      border-bottom: 1px solid var(--border);
+    }
+    .picker-group-head:not(:first-child) { margin-top: 6px; }
     .picker-item {
       aspect-ratio: 205 / 390; border: 1px solid var(--border); border-radius: 3px;
       overflow: hidden; cursor: pointer; background: #0d0d0d;
@@ -433,6 +459,24 @@
     <span><span class="mode-tag" id="modeTag" data-es="PRECOG" data-en="PRECOG">PRECOG</span><span class="qrng-dot" id="qrngDot" title="Estado del QRNG"></span></span>
   </div>
 
+  <!-- ── SIZE TOGGLES (TRIGGER POOL / TARGET POOL) ──────── -->
+  <div class="size-bar">
+    <div class="size-group">
+      <span class="size-label" data-es="Trigger" data-en="Trigger">Trigger</span>
+      <div class="h-toggle" aria-label="Trigger size">
+        <button class="h-btn dark" id="btnTrig22" data-trig="22" title="Trigger usa solo 22 arcanos mayores">22</button>
+        <button class="h-btn dark" id="btnTrig78" data-trig="78" title="Trigger usa los 78 arcanos">78</button>
+      </div>
+    </div>
+    <div class="size-group">
+      <span class="size-label" data-es="Target" data-en="Target">Target</span>
+      <div class="h-toggle" aria-label="Target size">
+        <button class="h-btn dark" id="btnTgt22" data-tgt="22" title="Target y predicción sobre 22 mayores · p=1/22">22</button>
+        <button class="h-btn dark" id="btnTgt78" data-tgt="78" title="Target y predicción sobre los 78 arcanos · p=1/78">78</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── BOARD ──────────────────────────────────────────── -->
   <div class="board" id="board">
     <div class="row">
@@ -529,7 +573,7 @@
 
     <!-- analysis -->
     <div class="analysis" id="analysisPanel">
-      <h3><span data-es="Análisis Actual" data-en="Current Analysis">Análisis Actual</span> · <span id="anaMode">PRECOG</span></h3>
+      <h3><span data-es="Análisis Actual" data-en="Current Analysis">Análisis Actual</span> · <span id="anaMode">PRECOG</span> · <span id="anaConfig">T22 G22</span></h3>
       <div class="stat-grid">
         <div class="stat-cell">
           <span class="stat-key" data-es="Hits" data-en="Hits">Hits</span>
@@ -687,31 +731,68 @@ function getQuantumIndex(n) {
 }
 
 // ── DECKS ────────────────────────────────────────────────
-// Duplicado de index.html. Misma justificación que el QRNG.
+// 22 majors (idx 0..21) + 56 minors (idx 22..77).
+// idx 0 = El Loco (compatibilidad con histórico previo).
+// Minor arcana se construyen programáticamente: 4 palos × 14 rangos.
+// Orden de palos: Bastos/Wands → Copas/Cups → Oros/Pentacles → Espadas/Swords.
+// Orden de rangos: As..10, Sota/Page, Caballero/Knight, Reina/Queen, Rey/King.
+const MAJORS_ES_M = ["El Loco","El Mago","La Papisa","La Emperatriz","El Emperador","El Papa","El Enamorado","El Carro","La Fuerza","El Ermitaño","La Rueda de la Fortuna","La Justicia","El Colgado","La Muerte","La Templanza","El Diablo","La Torre","La Estrella","La Luna","El Sol","El Juicio","El Mundo"];
+const MAJORS_ES_R = ["El Loco","El Mago","La Sacerdotisa","La Emperatriz","El Emperador","El Papa","Los Enamorados","El Carro","La Fuerza","El Ermitaño","La Rueda de la Fortuna","La Justicia","El Colgado","La Muerte","La Templanza","El Diablo","La Torre","La Estrella","La Luna","El Sol","El Juicio","El Mundo"];
+const MAJORS_EN_M = ["The Fool","The Magician","The Papess","The Empress","The Emperor","The Pope","The Lover","The Chariot","Strength","The Hermit","The Wheel of Fortune","The Justice","The Hanged Man","Death","The Temperance","The Devil","The Tower","The Star","The Moon","The Sun","The Judgement","The World"];
+const MAJORS_EN_R = ["The Fool","The Magician","The High Priestess","The Empress","The Emperor","The Hierophant","The Lovers","The Chariot","Strength","The Hermit","The Wheel of Fortune","The Justice","The Hanged Man","Death","The Temperance","The Devil","The Tower","The Star","The Moon","The Sun","The Judgement","The World"];
+const MAJORS_SLUG_M = ["el-loco","el-mago","la-papisa","la-emperatriz","el-emperador","el-papa","el-enamorado","el-carro","la-fuerza","el-ermitano","la-rueda-de-la-fortuna","la-justicia","el-colgado","la-muerte","la-templanza","el-diablo","la-torre","la-estrella","la-luna","el-sol","el-juicio","el-mundo"];
+// Rider slugs sin prefijo 'the-' en strength/justice/death/temperance/judgement/wheel-of-fortune
+const MAJORS_SLUG_R = ["the-fool","the-magician","the-high-priestess","the-empress","the-emperor","the-hierophant","the-lovers","the-chariot","strength","the-hermit","wheel-of-fortune","justice","the-hanged-man","death","temperance","the-devil","the-tower","the-star","the-moon","the-sun","judgement","the-world"];
+
+function _buildMinors() {
+  const SUIT_M    = ['bastos','copas','oros','espadas'];
+  const SUIT_R    = ['wands','cups','pentacles','swords'];
+  const SUIT_ES   = ['Bastos','Copas','Oros','Espadas'];
+  const SUIT_EN   = ['Wands','Cups','Pentacles','Swords'];
+  const RANK_M    = ['as','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','sota','caballero','reina','rey'];
+  const RANK_R    = ['ace','two','three','four','five','six','seven','eight','nine','ten','page','knight','queen','king'];
+  const RANK_ES   = ['As','Dos','Tres','Cuatro','Cinco','Seis','Siete','Ocho','Nueve','Diez','Sota','Caballero','Reina','Rey'];
+  const RANK_EN   = ['Ace','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Page','Knight','Queen','King'];
+  const out = { es: [], en: [], slugM: [], slugR: [] };
+  for (let s = 0; s < 4; s++) {
+    for (let r = 0; r < 14; r++) {
+      out.es.push(`${RANK_ES[r]} de ${SUIT_ES[s]}`);
+      out.en.push(`${RANK_EN[r]} of ${SUIT_EN[s]}`);
+      out.slugM.push(`${SUIT_M[s]}-${RANK_M[r]}`);
+      out.slugR.push(`${RANK_R[r]}-of-${SUIT_R[s]}`);
+    }
+  }
+  return out;
+}
+const _MIN = _buildMinors();
 const DECKS = {
   marsella: {
-    es: ["El Loco","El Mago","La Papisa","La Emperatriz","El Emperador","El Papa","El Enamorado","El Carro","La Fuerza","El Ermitaño","La Rueda de la Fortuna","La Justicia","El Colgado","La Muerte","La Templanza","El Diablo","La Torre","La Estrella","La Luna","El Sol","El Juicio","El Mundo"],
-    en: ["The Fool","The Magician","The Papess","The Empress","The Emperor","The Pope","The Lover","The Chariot","Strength","The Hermit","The Wheel of Fortune","The Justice","The Hanged Man","Death","The Temperance","The Devil","The Tower","The Star","The Moon","The Sun","The Judgement","The World"],
-    slugs: ["el-loco","el-mago","la-papisa","la-emperatriz","el-emperador","el-papa","el-enamorado","el-carro","la-fuerza","el-ermitano","la-rueda-de-la-fortuna","la-justicia","el-colgado","la-muerte","la-templanza","el-diablo","la-torre","la-estrella","la-luna","el-sol","el-juicio","el-mundo"],
-    path: '/cartas'
+    es:    [...MAJORS_ES_M,   ..._MIN.es],
+    en:    [...MAJORS_EN_M,   ..._MIN.en],
+    slugs: [...MAJORS_SLUG_M, ..._MIN.slugM],
+    path:  '/cartas'
   },
   rider: {
-    es: ["El Loco","El Mago","La Sacerdotisa","La Emperatriz","El Emperador","El Papa","Los Enamorados","El Carro","La Fuerza","El Ermitaño","La Rueda de la Fortuna","La Justicia","El Colgado","La Muerte","La Templanza","El Diablo","La Torre","La Estrella","La Luna","El Sol","El Juicio","El Mundo"],
-    en: ["The Fool","The Magician","The High Priestess","The Empress","The Emperor","The Hierophant","The Lovers","The Chariot","Strength","The Hermit","The Wheel of Fortune","The Justice","The Hanged Man","Death","The Temperance","The Devil","The Tower","The Star","The Moon","The Sun","The Judgement","The World"],
-    slugs: ["the-fool","the-magician","the-high-priestess","the-empress","the-emperor","the-hierophant","the-lovers","the-chariot","the-strength","the-hermit","the-wheel-of-fortune","the-justice","the-hanged-man","the-death","the-temperance","the-devil","the-tower","the-star","the-moon","the-sun","the-judgement","the-world"],
-    path: '/cartas/rider'
+    es:    [...MAJORS_ES_R,   ..._MIN.es],
+    en:    [...MAJORS_EN_R,   ..._MIN.en],
+    slugs: [...MAJORS_SLUG_R, ..._MIN.slugR],
+    path:  '/cartas/rider'
   }
 };
 
 // ── STATE ────────────────────────────────────────────────
 const ROUND_TOTAL = 100;
-const N_CARDS = 22;
-const P_HIT = 1 / N_CARDS;
 const LOG_KEY = 'arkana-rv-log';
 const MODE_KEY = 'arkana-rv-mode';
 const AUTO_KEY = 'arkana-rv-auto';
+const TRIG_KEY = 'arkana-rv-trig';      // 22 | 78
+const TGT_KEY  = 'arkana-rv-tgt';       // 22 | 78
 const AUTO_ADVANCE_MS = 2500;
 const LOG_MAX = 1000;
+const MAJOR_N = 22;
+const FULL_N  = 78;
+// Helpers — depend on triggerN / targetN state defined below.
+function pHit() { return 1 / targetN; }
 
 const PHASE = { SHOWN: 'shown', LOCKED: 'locked', REVEAL: 'reveal', ENDED: 'ended' };
 
@@ -720,6 +801,8 @@ let currentLang = localStorage.getItem('arkana-lang') ||
   ((navigator.language || 'es').toLowerCase().startsWith('es') ? 'es' : 'en');
 let currentMode = (localStorage.getItem(MODE_KEY) === 'clairv') ? 'clairv' : 'precog';
 let autoAdvance = (localStorage.getItem(AUTO_KEY) !== 'off');
+let triggerN = (localStorage.getItem(TRIG_KEY) === '78') ? FULL_N : MAJOR_N;
+let targetN  = (localStorage.getItem(TGT_KEY)  === '78') ? FULL_N : MAJOR_N;
 let advanceTimer = null;
 
 // Round-scoped state. Target idx lives ONLY here — never in DOM.
@@ -907,15 +990,23 @@ function binomTwoSidedPval(n, k, p) {
   return Math.min(1, s);
 }
 
-function modeLog(mode) { return log.filter(r => r.mode === mode); }
+// Per-(mode,trigger,target) slice: stats only make sense when these match,
+// because p_HIT and the catalyst distribution differ between configs.
+function modeLog(mode) {
+  return log.filter(r => r.mode === mode
+                    && (r.triggerN || MAJOR_N) === triggerN
+                    && (r.targetN  || MAJOR_N) === targetN);
+}
 
 function renderAnalysis() {
+  $('anaConfig').textContent = `T${triggerN} · G${targetN}`;
   const cur = modeLog(currentMode);
   const n = cur.length;
   const hits = cur.filter(r => r.hit).length;
-  const expected = n * P_HIT;
+  const p0 = pHit();
+  const expected = n * p0;
   const dev = hits - expected;
-  const pval = n > 0 ? binomTwoSidedPval(n, hits, P_HIT) : null;
+  const pval = n > 0 ? binomTwoSidedPval(n, hits, p0) : null;
 
   els.anaHits.textContent = hits;
   els.anaExpected.textContent = expected.toFixed(2);
@@ -952,7 +1043,8 @@ function drawChart(cur) {
   }
   const xs = i => padL + ((W - padL - padR) * i) / Math.max(1, n - 1);
   const maxHits = Math.max(1, ...cur.map((_, i) => cumulativeHits(cur, i)));
-  const yMax = Math.max(maxHits, n * P_HIT) * 1.15 + 0.5;
+  const p0 = pHit();
+  const yMax = Math.max(maxHits, n * p0) * 1.15 + 0.5;
   const ys = h => H - padB - ((H - padT - padB) * h) / yMax;
 
   for (let i = 0; i < n; i++) {
@@ -962,7 +1054,7 @@ function drawChart(cur) {
   }
   // expected line
   const x0 = xs(0), y0 = ys(0);
-  const x1 = xs(n - 1), y1 = ys((n - 1) * P_HIT);
+  const x1 = xs(n - 1), y1 = ys((n - 1) * p0);
   expPath = `M${x0.toFixed(1)} ${y0.toFixed(1)} L${x1.toFixed(1)} ${y1.toFixed(1)}`;
 
   // hit dots (small)
@@ -1007,13 +1099,13 @@ function roundStart() {
   setSubmitMode('submit');
   els.board.classList.remove('locked');
 
-  // Generate catalysts: 3 distinct indices (rejection on dup).
-  // NOTE: in BOTH modes the catalysts are generated at round start.
+  // Generate catalysts: 3 distinct indices drawn from the TRIGGER pool (triggerN).
+  // Target is drawn from the TARGET pool (targetN) — these are independent pools.
   // The ORDER between target/catalysts differs by mode to honour the
   // scientific distinction (target before vs after prediction).
   if (currentMode === 'clairv') {
     // Clairvoyance: target FIRST, then catalysts.
-    targetIdx = getQuantumIndex(N_CARDS);
+    targetIdx = getQuantumIndex(targetN);
     catalysts = drawCatalysts();
   } else {
     // Precognition: catalysts first; target is generated only after Submit.
@@ -1026,8 +1118,8 @@ function roundStart() {
 function drawCatalysts() {
   const out = [];
   let safety = 0;
-  while (out.length < 3 && safety < 200) {
-    const i = getQuantumIndex(N_CARDS);
+  while (out.length < 3 && safety < 400) {
+    const i = getQuantumIndex(triggerN);
     if (!out.includes(i)) out.push(i);
     safety++;
   }
@@ -1053,7 +1145,8 @@ function setPrediction(idx) {
 function nudgePrediction(delta) {
   if (phase !== PHASE.SHOWN) return;
   let next = (predictionIdx === null ? 0 : predictionIdx + delta);
-  next = (next + N_CARDS) % N_CARDS;
+  // Prediction picker mirrors the target pool — that's the universe of valid guesses.
+  next = (next + targetN) % targetN;
   setPrediction(next);
 }
 
@@ -1066,7 +1159,7 @@ function onSubmit() {
   // PRECOGNITION: target is selected NOW (after prediction is locked).
   // This is the moment that distinguishes a precog test from a clairv test.
   if (currentMode === 'precog') {
-    targetIdx = getQuantumIndex(N_CARDS);
+    targetIdx = getQuantumIndex(targetN);
   }
 
   // small delay then reveal (flip the target card)
@@ -1083,6 +1176,7 @@ function onSubmit() {
       round: currentRoundIndex() + 1,
       mode: currentMode,
       deck: currentDeck,
+      triggerN, targetN,
       prediction: predictionIdx,
       target: targetIdx,
       hit,
@@ -1137,28 +1231,44 @@ function setSubmitMode(mode) {
 // ── PICKER ───────────────────────────────────────────────
 function buildPicker() {
   els.pickerGrid.innerHTML = '';
-  for (let i = 0; i < N_CARDS; i++) {
-    const it = document.createElement('div');
-    it.className = 'picker-item';
-    if (i === predictionIdx) it.classList.add('selected');
-    it.tabIndex = 0;
-    it.setAttribute('role', 'button');
-    it.setAttribute('aria-label', cardName(i));
-    const img = new Image();
-    img.src = thumbPath(i); img.alt = cardName(i); img.loading = 'lazy';
-    it.appendChild(img);
-    const nm = document.createElement('div');
-    nm.className = 'pick-name';
-    nm.textContent = cardName(i);
-    it.appendChild(nm);
-    it.addEventListener('click', () => {
-      setPrediction(i);
-      closePicker();
-    });
-    it.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPrediction(i); closePicker(); }
-    });
-    els.pickerGrid.appendChild(it);
+  // Group definitions: majors block + 4 suit blocks (only shown when targetN === 78).
+  // Order matches DECKS index layout: 0-21 majors, 22-35 wands, 36-49 cups, 50-63 pentacles, 64-77 swords.
+  const groups = [
+    { from: 0, to: 22, es: 'Arcanos Mayores', en: 'Major Arcana' }
+  ];
+  if (targetN === FULL_N) {
+    groups.push(
+      { from: 22, to: 36, es: 'Bastos',  en: 'Wands' },
+      { from: 36, to: 50, es: 'Copas',   en: 'Cups' },
+      { from: 50, to: 64, es: 'Oros',    en: 'Pentacles' },
+      { from: 64, to: 78, es: 'Espadas', en: 'Swords' }
+    );
+  }
+  for (const g of groups) {
+    const head = document.createElement('div');
+    head.className = 'picker-group-head';
+    head.textContent = currentLang === 'es' ? g.es : g.en;
+    els.pickerGrid.appendChild(head);
+    for (let i = g.from; i < g.to; i++) {
+      const it = document.createElement('div');
+      it.className = 'picker-item';
+      if (i === predictionIdx) it.classList.add('selected');
+      it.tabIndex = 0;
+      it.setAttribute('role', 'button');
+      it.setAttribute('aria-label', cardName(i));
+      const img = new Image();
+      img.src = thumbPath(i); img.alt = cardName(i); img.loading = 'lazy';
+      it.appendChild(img);
+      const nm = document.createElement('div');
+      nm.className = 'pick-name';
+      nm.textContent = cardName(i);
+      it.appendChild(nm);
+      it.addEventListener('click', () => { setPrediction(i); closePicker(); });
+      it.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPrediction(i); closePicker(); }
+      });
+      els.pickerGrid.appendChild(it);
+    }
   }
 }
 function openPicker() {
@@ -1175,9 +1285,10 @@ function showEndModal() {
   const cur = modeLog(currentMode);
   const n = cur.length;
   const hits = cur.filter(r => r.hit).length;
-  const expected = n * P_HIT;
+  const p0 = pHit();
+  const expected = n * p0;
   const dev = hits - expected;
-  const pval = binomTwoSidedPval(n, hits, P_HIT);
+  const pval = binomTwoSidedPval(n, hits, p0);
   els.endHits.textContent = hits;
   els.endExp.textContent = expected.toFixed(2);
   els.endDev.textContent = (dev >= 0 ? '+' : '') + dev.toFixed(2);
@@ -1259,6 +1370,28 @@ function setLang(l) {
   applyLang();
   renderAnalysis();
 }
+function setTriggerN(n) {
+  if (n === triggerN) return;
+  if (phase === PHASE.LOCKED) return;
+  triggerN = n;
+  localStorage.setItem(TRIG_KEY, String(n));
+  syncSizeButtons();
+  roundStart();
+}
+function setTargetN(n) {
+  if (n === targetN) return;
+  if (phase === PHASE.LOCKED) return;
+  targetN = n;
+  localStorage.setItem(TGT_KEY, String(n));
+  syncSizeButtons();
+  roundStart();
+}
+function syncSizeButtons() {
+  document.getElementById('btnTrig22').classList.toggle('active', triggerN === MAJOR_N);
+  document.getElementById('btnTrig78').classList.toggle('active', triggerN === FULL_N);
+  document.getElementById('btnTgt22').classList.toggle('active', targetN === MAJOR_N);
+  document.getElementById('btnTgt78').classList.toggle('active', targetN === FULL_N);
+}
 
 // ── EVENT BINDINGS ───────────────────────────────────────
 document.getElementById('btnPrecog').addEventListener('click', () => setMode('precog'));
@@ -1267,6 +1400,10 @@ document.getElementById('btnMarsella').addEventListener('click', () => setDeck('
 document.getElementById('btnRider').addEventListener('click', () => setDeck('rider'));
 document.getElementById('btnES').addEventListener('click', () => setLang('es'));
 document.getElementById('btnEN').addEventListener('click', () => setLang('en'));
+document.getElementById('btnTrig22').addEventListener('click', () => setTriggerN(MAJOR_N));
+document.getElementById('btnTrig78').addEventListener('click', () => setTriggerN(FULL_N));
+document.getElementById('btnTgt22').addEventListener('click',  () => setTargetN(MAJOR_N));
+document.getElementById('btnTgt78').addEventListener('click',  () => setTargetN(FULL_N));
 
 els.arrL.addEventListener('click', () => nudgePrediction(-1));
 els.arrR.addEventListener('click', () => nudgePrediction(+1));
@@ -1330,6 +1467,7 @@ async function init() {
   document.getElementById('btnRider').classList.toggle('active', currentDeck === 'rider');
   document.getElementById('btnES').classList.toggle('active', currentLang === 'es');
   document.getElementById('btnEN').classList.toggle('active', currentLang === 'en');
+  syncSizeButtons();
   els.roundTotal.textContent = ROUND_TOTAL;
   applyLang();
   applyAutoState();
