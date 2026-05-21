@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="darkreader-lock">
+  <title>Radio Arkana · Dojo · Remote View</title>
+  <meta name="description" content="Experimento de precognición / clarividencia con aleatoriedad cuántica real. Tarot Underground.">
+
+  <meta property="og:title"        content="Radio Arkana · Dojo · Remote View">
+  <meta property="og:description"  content="Experimento de precognición y clarividencia con aleatoriedad cuántica.">
+  <meta property="og:image"        content="https://radioarkana.com/og-image.jpg">
+  <meta property="og:url"          content="https://radioarkana.com/remoteview.html">
+  <meta property="og:type"         content="website">
+
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icon-192.png" type="image/png">
+  <meta name="theme-color" content="#e63030">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0a0a0a; --surface: #111111; --border: #1e1e1e;
+      --red: #e63030; --red-dim: #7a1a1a; --amber: #ce9d06; --green: #22c55e;
+      --white: #f0ece4; --gray: #555; --muted: #8a8278;
+      --font-head: 'Bebas Neue', sans-serif;
+      --font-body: 'Space Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); color: var(--white); font-family: var(--font-body); min-height: 100dvh; }
+    body { overflow-x: hidden; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 100; opacity: 0.4;
+    }
+
+    .wrap { width: min(460px, 96vw); margin: 0 auto; padding: 0 0 32px; display: flex; flex-direction: column; min-height: 100dvh; }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    .site-header {
+      background: var(--red); padding: 7px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px;
+    }
+    .header-left { display: flex; flex-direction: column; gap: 1px; }
+    .header-title { font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(0,0,0,0.7); font-weight: 700; }
+    .header-sub { font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(0,0,0,0.5); }
+    .header-right { display: flex; align-items: center; gap: 6px; }
+    .h-toggle {
+      display: flex; align-items: center;
+      border: 1px solid rgba(0,0,0,0.25); border-radius: 2px; overflow: hidden;
+      background: rgba(0,0,0,0.08);
+    }
+    .h-btn {
+      background: transparent; border: none; cursor: pointer; color: rgba(0,0,0,0.55);
+      font-family: var(--font-body); font-size: 9px; letter-spacing: 0.12em;
+      padding: 4px 7px; text-transform: uppercase; transition: background 0.15s, color 0.15s;
+      line-height: 1;
+    }
+    .h-btn + .h-btn { border-left: 1px solid rgba(0,0,0,0.2); }
+    .h-btn.active { background: rgba(0,0,0,0.22); color: rgba(0,0,0,0.9); }
+    .h-btn:not(.active):hover { background: rgba(0,0,0,0.12); }
+
+    /* ── ROUND BAR ──────────────────────────────────────── */
+    .round-bar {
+      background: var(--surface); border: 1px solid var(--border); border-top: none;
+      padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;
+      font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gray);
+    }
+    .round-bar .round-num { color: var(--white); font-weight: 700; }
+    .round-bar .mode-tag {
+      padding: 2px 7px; font-size: 8px; letter-spacing: 0.2em; color: var(--red);
+      border: 1px solid var(--red-dim); border-radius: 2px;
+    }
+    .round-bar .mode-tag.clairv { color: var(--amber); border-color: rgba(206,157,6,0.5); }
+    .qrng-dot {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gray); margin-left: 8px; transition: background 0.3s, box-shadow 0.3s;
+      vertical-align: middle;
+    }
+    .qrng-dot.quantum { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.55); }
+    .qrng-dot.local   { background: var(--amber); box-shadow: 0 0 6px rgba(206,157,6,0.5); }
+
+    /* ── BOARD ──────────────────────────────────────────── */
+    .board {
+      background: var(--surface); border: 1px solid var(--border); border-top: none;
+      padding: 22px 18px 18px;
+    }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .slot { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .slot-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); }
+    .slot-label.target { color: var(--red); }
+
+    /* ── CARD ───────────────────────────────────────────── */
+    .card-frame {
+      position: relative; width: 100%; aspect-ratio: 5 / 8;
+      perspective: 800px; cursor: pointer;
+    }
+    .card-frame.locked { cursor: default; }
+    .card-inner {
+      position: relative; width: 100%; height: 100%;
+      transform-style: preserve-3d; transition: transform 0.7s cubic-bezier(.22,.9,.3,1);
+    }
+    .card-frame.flipped .card-inner { transform: rotateY(180deg); }
+    .card-face {
+      position: absolute; inset: 0; backface-visibility: hidden;
+      border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+      background: #0d0d0d; box-shadow: 0 4px 18px rgba(0,0,0,0.6);
+    }
+    .card-face.back { transform: rotateY(180deg); }
+    .card-face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .card-face.empty {
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at center, #1a1a1a 0%, #050505 70%);
+      color: var(--gray); font-size: 24px;
+    }
+    .card-face.empty svg { width: 60%; height: 60%; opacity: 0.55; }
+
+    /* card back (spiral / cosmic) */
+    .card-back-design {
+      width: 100%; height: 100%;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(230,48,48,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, #0a0a0a 0%, #000 100%);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .card-back-design::before {
+      content: ''; position: absolute; inset: 8px;
+      border: 1px solid rgba(230,48,48,0.18); border-radius: 4px;
+    }
+    .card-back-design svg { width: 70%; height: 70%; opacity: 0.65; }
+
+    .prediction-card .card-face.front,
+    .target-card .card-face.front { background: #0d0d0d; }
+
+    /* hit/miss border accents */
+    .target-card.hit .card-face.front { border-color: var(--green); box-shadow: 0 0 18px rgba(34,197,94,0.4); }
+    .target-card.miss .card-face.front { border-color: var(--red-dim); }
+
+    /* ── CAROUSEL ARROWS ────────────────────────────────── */
+    .car-arrows {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; gap: 4px; margin-top: 4px;
+    }
+    .arrow-btn {
+      background: transparent; border: 1px solid var(--border); color: var(--white);
+      width: 28px; height: 28px; border-radius: 2px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-body); font-size: 12px; transition: all 0.15s;
+    }
+    .arrow-btn:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
+    .arrow-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .car-name {
+      flex: 1; text-align: center; font-size: 9px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--white);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .car-name.placeholder { color: var(--gray); }
+
+    /* ── ACTIONS ────────────────────────────────────────── */
+    .actions {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin-top: 16px;
+    }
+    .act-btn {
+      background: transparent; border: 1px solid var(--border); color: var(--white);
+      font-family: var(--font-body); font-size: 10px; letter-spacing: 0.25em;
+      text-transform: uppercase; padding: 11px 8px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .act-btn:hover:not(:disabled) { border-color: var(--red); background: rgba(230,48,48,0.06); }
+    .act-btn:disabled { opacity: 0.32; cursor: not-allowed; }
+    .act-btn.primary { border-color: var(--red); color: var(--red); }
+    .act-btn.primary:hover:not(:disabled) { background: rgba(230,48,48,0.12); }
+    .act-btn.amber { border-color: rgba(206,157,6,0.55); color: var(--amber); }
+
+    /* ── ROUND STATS ROW ────────────────────────────────── */
+    .stats-inline {
+      display: flex; justify-content: center; gap: 22px;
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      margin-top: 14px; color: var(--gray);
+    }
+    .stats-inline .hit-num { color: var(--green); font-weight: 700; }
+    .stats-inline .miss-num { color: var(--red); font-weight: 700; }
+
+    /* ── CATALYSTS ──────────────────────────────────────── */
+    .catalyst-section { margin-top: 22px; }
+    .catalyst-label {
+      font-size: 8px; letter-spacing: 0.3em; text-transform: uppercase;
+      text-align: center; color: var(--red); margin-bottom: 10px;
+    }
+    .catalyst-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+    }
+    .catalyst-card {
+      aspect-ratio: 5 / 8; border: 1px solid var(--border); border-radius: 4px;
+      overflow: hidden; background: #0d0d0d;
+      box-shadow: 0 0 14px rgba(230,48,48,0.08);
+      animation: catalystIn 0.5s cubic-bezier(.22,.9,.3,1) backwards;
+    }
+    .catalyst-card.empty { background: repeating-linear-gradient(45deg, #0a0a0a 0 6px, #111 6px 12px); }
+    .catalyst-card:nth-child(2) { animation-delay: 0.08s; }
+    .catalyst-card:nth-child(3) { animation-delay: 0.16s; }
+    .catalyst-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    @keyframes catalystIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ── ANALYSIS PANEL ─────────────────────────────────── */
+    .analysis {
+      margin-top: 22px; padding: 16px; border: 1px solid var(--border);
+      border-radius: 4px; background: rgba(255,255,255,0.012);
+    }
+    .analysis h3 {
+      font-family: var(--font-body); font-weight: 400;
+      font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--red); margin-bottom: 12px;
+    }
+    .stat-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px;
+      font-size: 10px;
+    }
+    .stat-cell { display: flex; flex-direction: column; gap: 2px; }
+    .stat-key { font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray); }
+    .stat-val { font-size: 14px; color: var(--white); font-weight: 700; }
+    .stat-val.pos { color: var(--green); }
+    .stat-val.neg { color: var(--red); }
+    .stat-val.sig { color: var(--amber); }
+
+    .chart-wrap {
+      margin-top: 14px; display: grid; grid-template-columns: 1fr; gap: 10px;
+    }
+    .chart-box { border: 1px solid var(--border); padding: 8px; border-radius: 3px; }
+    .chart-box svg { width: 100%; height: 80px; display: block; }
+    .chart-box .chart-title {
+      font-size: 7px; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 4px;
+    }
+
+    .compare {
+      margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);
+      font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    }
+    .compare span b { color: var(--white); font-weight: 700; }
+
+    .controls-row {
+      margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between;
+    }
+    .ctrl-btn {
+      background: transparent; border: 1px solid var(--border); color: var(--gray);
+      font-family: var(--font-body); font-size: 8px; letter-spacing: 0.2em;
+      text-transform: uppercase; padding: 7px 11px; cursor: pointer;
+      transition: all 0.15s; border-radius: 2px;
+    }
+    .ctrl-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── FOOTER ─────────────────────────────────────────── */
+    .foot {
+      margin-top: 18px; padding: 12px 18px;
+      border: 1px solid var(--border); border-top: none;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--gray);
+    }
+    .foot a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+    .foot a:hover { color: var(--red); }
+
+    /* ── PICKER MODAL ───────────────────────────────────── */
+    .picker {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.88); backdrop-filter: blur(8px);
+      align-items: flex-start; justify-content: center;
+      padding: 5vh 16px; overflow-y: auto;
+    }
+    .picker.open { display: flex; }
+    .picker-card {
+      width: min(420px, 96vw); background: var(--surface);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 16px;
+    }
+    .picker-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px;
+    }
+    .picker-head h2 {
+      font-family: var(--font-body); font-weight: 700;
+      font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--red);
+    }
+    .picker-close {
+      background: transparent; border: 1px solid var(--border); color: var(--white);
+      width: 26px; height: 26px; cursor: pointer; border-radius: 2px;
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .picker-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+    }
+    .picker-item {
+      aspect-ratio: 5 / 8; border: 1px solid var(--border); border-radius: 3px;
+      overflow: hidden; cursor: pointer; background: #0d0d0d;
+      transition: border-color 0.15s, transform 0.1s;
+      position: relative;
+    }
+    .picker-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .picker-item:hover { border-color: var(--red); }
+    .picker-item.selected { border-color: var(--red); box-shadow: 0 0 8px rgba(230,48,48,0.5); }
+    .picker-item .pick-name {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 30%, transparent);
+      color: var(--white); font-size: 7px; letter-spacing: 0.05em;
+      text-align: center; padding: 8px 2px 3px; line-height: 1.1;
+    }
+
+    /* ── HELP MODAL ─────────────────────────────────────── */
+    .help-modal {
+      display: none; position: fixed; inset: 0; z-index: 220;
+      background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+      padding: 5vh 16px; overflow-y: auto;
+    }
+    .help-modal.open { display: flex; }
+    .help-card {
+      width: min(460px, 96vw); background: var(--surface);
+      border: 1px solid var(--border); padding: 22px; font-size: 11px; line-height: 1.7;
+      color: #a09a90; max-height: 90vh; overflow-y: auto;
+    }
+    .help-card h2 {
+      font-family: var(--font-head); font-size: 26px; letter-spacing: 0.04em;
+      color: var(--white); margin-bottom: 12px;
+    }
+    .help-card h3 {
+      font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--red); margin: 18px 0 6px;
+    }
+    .help-card p { margin-bottom: 10px; }
+    .help-card p strong { color: var(--white); }
+
+    /* ── CONGRATS / END ─────────────────────────────────── */
+    .end-modal {
+      display: none; position: fixed; inset: 0; z-index: 230;
+      background: rgba(0,0,0,0.93); backdrop-filter: blur(10px);
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    .end-modal.open { display: flex; }
+    .end-card {
+      width: min(420px, 96vw); background: var(--surface);
+      border: 1px solid var(--red); padding: 28px 22px; text-align: center;
+    }
+    .end-card h1 {
+      font-family: var(--font-head); font-size: 44px; letter-spacing: 0.04em;
+      color: var(--white); line-height: 1; margin-bottom: 8px;
+    }
+    .end-card h1 span { color: var(--red); }
+    .end-card .end-sub {
+      font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 22px;
+    }
+    .end-card .end-stats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+      margin: 22px 0; text-align: left;
+    }
+    .end-card .end-stats .stat-key { font-size: 8px; letter-spacing: 0.2em; color: var(--gray); }
+    .end-card .end-stats .stat-val { font-size: 18px; color: var(--white); font-weight: 700; }
+
+    /* ── TOAST ──────────────────────────────────────────── */
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 9px 16px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--white); border-radius: 3px; opacity: 0;
+      transition: opacity 0.25s, transform 0.25s; pointer-events: none;
+      z-index: 250;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.hit  { border-color: var(--green); color: var(--green); }
+    .toast.miss { border-color: var(--red-dim); color: var(--red); }
+
+    /* ── DISABLED STATE ─────────────────────────────────── */
+    .board.locked .arrow-btn,
+    .board.locked .card-frame.prediction-card { pointer-events: none; opacity: 0.85; }
+
+    @media (max-width: 380px) {
+      .row { gap: 10px; }
+      .actions { gap: 6px; }
+      .act-btn { font-size: 9px; padding: 9px 4px; }
+      .catalyst-row { gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── HEADER ─────────────────────────────────────────── -->
+  <header class="site-header">
+    <div class="header-left">
+      <span class="header-title">Radio Arkana · Dojo</span>
+      <span class="header-sub" id="modeBanner" data-es="Remote View · Precognición" data-en="Remote View · Precognition">Remote View · Precognición</span>
+    </div>
+    <div class="header-right">
+      <div class="h-toggle" role="tablist" aria-label="Modo">
+        <button class="h-btn active" id="btnPrecog" role="tab" aria-selected="true" data-mode="precog" title="Precognición · target después" data-es="Pre" data-en="Pre">Pre</button>
+        <button class="h-btn" id="btnClairv" role="tab" aria-selected="false" data-mode="clairv" title="Clarividencia · target antes" data-es="Cla" data-en="Cla">Cla</button>
+      </div>
+      <div class="h-toggle" aria-label="Mazo">
+        <button class="h-btn active" id="btnMarsella" data-deck="marsella" title="Tarot de Marsella">M</button>
+        <button class="h-btn" id="btnRider" data-deck="rider" title="Rider-Waite-Smith">R</button>
+      </div>
+      <div class="h-toggle" aria-label="Idioma">
+        <button class="h-btn active" id="btnES" data-lang="es">ES</button>
+        <button class="h-btn" id="btnEN" data-lang="en">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── ROUND BAR ──────────────────────────────────────── -->
+  <div class="round-bar">
+    <span><span data-es="Round" data-en="Round">Round</span> <span class="round-num" id="roundNum">1</span>/<span id="roundTotal">100</span></span>
+    <span><span class="mode-tag" id="modeTag" data-es="PRECOG" data-en="PRECOG">PRECOG</span><span class="qrng-dot" id="qrngDot" title="Estado del QRNG"></span></span>
+  </div>
+
+  <!-- ── BOARD ──────────────────────────────────────────── -->
+  <div class="board" id="board">
+    <div class="row">
+      <!-- prediction -->
+      <div class="slot">
+        <span class="slot-label" data-es="Mi Predicción" data-en="My Prediction">Mi Predicción</span>
+        <div class="card-frame prediction-card" id="predictionCard" tabindex="0" role="button"
+             aria-label="Seleccionar predicción">
+          <div class="card-inner">
+            <div class="card-face front" id="predictionFace">
+              <div class="card-face empty" id="predictionEmpty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"/><path d="M8 12h8"/><path d="M12 8v8"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="car-arrows">
+          <button class="arrow-btn" id="arrLeft" aria-label="Anterior">◀</button>
+          <span class="car-name placeholder" id="predName" data-es="Selecciona" data-en="Pick">Selecciona</span>
+          <button class="arrow-btn" id="arrRight" aria-label="Siguiente">▶</button>
+        </div>
+      </div>
+
+      <!-- target -->
+      <div class="slot">
+        <span class="slot-label target" data-es="El Objetivo" data-en="The Target">El Objetivo</span>
+        <div class="card-frame target-card" id="targetCard">
+          <div class="card-inner" id="targetInner">
+            <div class="card-face front" id="targetFront">
+              <div class="card-face empty" id="targetEmpty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" aria-hidden="true">
+                  <path d="M12 2 a10 10 0 1 0 0 20 a10 10 0 1 0 0 -20" opacity="0.3"/>
+                  <path d="M12 6 a6 6 0 1 1 -3.6 10.8" opacity="0.5"/>
+                  <path d="M12 10 a2 2 0 1 1 -1.4 3.4" opacity="0.7"/>
+                  <circle cx="12" cy="12" r="0.8" fill="currentColor"/>
+                </svg>
+              </div>
+            </div>
+            <div class="card-face back" id="targetBack">
+              <div class="card-back-design">
+                <svg viewBox="0 0 100 100" aria-hidden="true">
+                  <defs>
+                    <radialGradient id="cbg" cx="50%" cy="50%" r="55%">
+                      <stop offset="0%" stop-color="#3a0808"/>
+                      <stop offset="100%" stop-color="#0a0000"/>
+                    </radialGradient>
+                  </defs>
+                  <circle cx="50" cy="50" r="48" fill="url(#cbg)" stroke="#e63030" stroke-width="0.6" stroke-opacity="0.5"/>
+                  <g fill="none" stroke="#e63030" stroke-width="0.5" stroke-opacity="0.6">
+                    <circle cx="50" cy="50" r="38"/>
+                    <circle cx="50" cy="50" r="28"/>
+                    <circle cx="50" cy="50" r="18"/>
+                    <circle cx="50" cy="50" r="8"/>
+                  </g>
+                  <g stroke="#e63030" stroke-width="0.4" stroke-opacity="0.5">
+                    <line x1="50" y1="6" x2="50" y2="94"/>
+                    <line x1="6" y1="50" x2="94" y2="50"/>
+                    <line x1="18" y1="18" x2="82" y2="82"/>
+                    <line x1="82" y1="18" x2="18" y2="82"/>
+                  </g>
+                  <circle cx="50" cy="50" r="2.2" fill="#e63030" opacity="0.85"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="car-name" id="targetName" data-es="Pendiente" data-en="Pending">Pendiente</span>
+      </div>
+    </div>
+
+    <!-- actions -->
+    <div class="actions">
+      <button class="act-btn primary" id="btnSubmit" disabled data-es="Submit" data-en="Submit">Submit</button>
+      <button class="act-btn" id="btnHelp" data-es="Help" data-en="Help">Help</button>
+    </div>
+
+    <!-- inline stats -->
+    <div class="stats-inline">
+      <span><span data-es="Hits" data-en="Hits">Hits</span>: <span class="hit-num" id="hitsInline">0</span></span>
+      <span><span data-es="Misses" data-en="Misses">Misses</span>: <span class="miss-num" id="missesInline">0</span></span>
+    </div>
+
+    <!-- catalysts -->
+    <div class="catalyst-section">
+      <div class="catalyst-label" data-es="Trigger / Catalizador" data-en="Trigger / Catalyst">Trigger / Catalizador</div>
+      <div class="catalyst-row" id="catalystRow">
+        <div class="catalyst-card empty"></div>
+        <div class="catalyst-card empty"></div>
+        <div class="catalyst-card empty"></div>
+      </div>
+    </div>
+
+    <!-- analysis -->
+    <div class="analysis" id="analysisPanel">
+      <h3><span data-es="Análisis Actual" data-en="Current Analysis">Análisis Actual</span> · <span id="anaMode">PRECOG</span></h3>
+      <div class="stat-grid">
+        <div class="stat-cell">
+          <span class="stat-key" data-es="Hits" data-en="Hits">Hits</span>
+          <span class="stat-val" id="anaHits">0</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-key" data-es="Esperado" data-en="Expected">Esperado</span>
+          <span class="stat-val" id="anaExpected">0.0</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-key" data-es="Desviación" data-en="Deviation">Desviación</span>
+          <span class="stat-val" id="anaDev">0.0</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-key" data-es="P-Value" data-en="P-Value">P-Value</span>
+          <span class="stat-val" id="anaPval">—</span>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-box">
+          <div class="chart-title" data-es="Hits acumulados vs Esperado" data-en="Cumulative hits vs expected">Hits acumulados vs Esperado</div>
+          <svg id="lineChart" viewBox="0 0 200 80" preserveAspectRatio="none" aria-hidden="true"></svg>
+        </div>
+      </div>
+      <div class="compare">
+        <span data-es="Comparativa Cruzada" data-en="Cross-Mode Comparison">Comparativa Cruzada</span>
+        <span><span data-es="Precognición" data-en="Precognition">Precognición</span>: <b id="cmpPrecog">0/0</b></span>
+        <span><span data-es="Clarividencia" data-en="Clairvoyance">Clarividencia</span>: <b id="cmpClairv">0/0</b></span>
+      </div>
+      <div class="controls-row">
+        <button class="ctrl-btn" id="btnExport" data-es="Exportar JSON" data-en="Export JSON">Exportar JSON</button>
+        <button class="ctrl-btn" id="btnReset" data-es="Reset" data-en="Reset">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FOOTER ─────────────────────────────────────────── -->
+  <div class="foot">
+    <a href="/index.html">← <span data-es="Radio" data-en="Radio">Radio</span></a>
+    <a href="/guia-arkana.html" target="_blank"><span data-es="Guía" data-en="Guide">Guía</span></a>
+  </div>
+</div>
+
+<!-- ── PICKER MODAL ─────────────────────────────────────── -->
+<div class="picker" id="pickerModal" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+  <div class="picker-card">
+    <div class="picker-head">
+      <h2 id="pickerTitle" data-es="Elige tu Predicción" data-en="Pick your Prediction">Elige tu Predicción</h2>
+      <button class="picker-close" id="pickerClose" aria-label="Cerrar">×</button>
+    </div>
+    <div class="picker-grid" id="pickerGrid"></div>
+  </div>
+</div>
+
+<!-- ── HELP MODAL ───────────────────────────────────────── -->
+<div class="help-modal" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="help-card">
+    <button class="picker-close" id="helpClose" aria-label="Cerrar" style="float:right">×</button>
+    <h2 id="helpTitle" data-es="El Vínculo Anacrónico" data-en="The Anachronistic Link">El Vínculo Anacrónico</h2>
+
+    <h3 data-es="Modo Precognición" data-en="Precognition Mode">Modo Precognición</h3>
+    <p data-es="El sistema te muestra <strong>3 cartas catalizadoras</strong> al azar como disparador. Eliges la carta que crees que el sistema generará a continuación. Solo <strong>después</strong> de pulsar <em>Submit</em> el QRNG cuántico selecciona la carta Target. Pones a prueba la <strong>precognición</strong>: percibir algo que aún no existe."
+       data-en="The system shows you <strong>3 catalyst cards</strong> at random as a trigger. You pick the card you think the system will generate next. Only <strong>after</strong> you press <em>Submit</em> does the quantum RNG select the Target card. You're testing <strong>precognition</strong>: perceiving something that doesn't yet exist.">El sistema te muestra <strong>3 cartas catalizadoras</strong> al azar como disparador. Eliges la carta que crees que el sistema generará a continuación. Solo <strong>después</strong> de pulsar <em>Submit</em> el QRNG cuántico selecciona la carta Target. Pones a prueba la <strong>precognición</strong>: percibir algo que aún no existe.</p>
+
+    <h3 data-es="Modo Clarividencia" data-en="Clairvoyance Mode">Modo Clarividencia</h3>
+    <p data-es="El sistema selecciona el Target <strong>antes</strong> de empezar la ronda y lo coloca boca abajo. Las 3 cartas catalizadoras sirven para sintonizar con la identidad ya determinada del Target. Cuando pulsas <em>Submit</em>, el Target se voltea. Pones a prueba la <strong>clarividencia</strong>: percibir algo que ya existe pero está oculto."
+       data-en="The system picks the Target <strong>before</strong> the round starts and places it face-down. The 3 catalyst cards help you tune in to the Target's already-determined identity. When you press <em>Submit</em>, the Target flips. You're testing <strong>clairvoyance</strong>: perceiving something that already exists but is hidden.">El sistema selecciona el Target <strong>antes</strong> de empezar la ronda y lo coloca boca abajo. Las 3 cartas catalizadoras sirven para sintonizar con la identidad ya determinada del Target. Cuando pulsas <em>Submit</em>, el Target se voltea. Pones a prueba la <strong>clarividencia</strong>: percibir algo que ya existe pero está oculto.</p>
+
+    <h3 data-es="Aleatoriedad Cuántica" data-en="Quantum Randomness">Aleatoriedad Cuántica</h3>
+    <p data-es="Las cartas se seleccionan con el mismo generador cuántico de Radio Arkana — bytes obtenidos de fluctuaciones del vacío. Si el pool se agota, se usa <em>Math.random()</em> como respaldo (el indicador en la barra superior pasa a ámbar)."
+       data-en="Cards are selected with the same quantum generator as Radio Arkana — bytes from vacuum fluctuations. If the pool runs dry, <em>Math.random()</em> takes over (the indicator on the top bar turns amber).">Las cartas se seleccionan con el mismo generador cuántico de Radio Arkana — bytes obtenidos de fluctuaciones del vacío. Si el pool se agota, se usa <em>Math.random()</em> como respaldo (el indicador en la barra superior pasa a ámbar).</p>
+
+    <h3 data-es="Lectura del P-Value" data-en="P-Value reading">Lectura del P-Value</h3>
+    <p data-es="P-Value < 0.05 sugiere un resultado significativamente distinto del azar (1/22 ≈ 4.5%). No es prueba de fenómeno psi — solo significa que el patrón es difícil de explicar por suerte sola. Necesitas <strong>muchos rounds</strong> para que el test tenga poder estadístico."
+       data-en="P-Value < 0.05 suggests a result significantly different from chance (1/22 ≈ 4.5%). It's not proof of psi — it just means the pattern is hard to explain by luck alone. You need <strong>many rounds</strong> for the test to have statistical power.">P-Value &lt; 0.05 sugiere un resultado significativamente distinto del azar (1/22 ≈ 4.5%). No es prueba de fenómeno psi — solo significa que el patrón es difícil de explicar por suerte sola. Necesitas <strong>muchos rounds</strong> para que el test tenga poder estadístico.</p>
+  </div>
+</div>
+
+<!-- ── END MODAL ────────────────────────────────────────── -->
+<div class="end-modal" id="endModal" role="dialog" aria-modal="true">
+  <div class="end-card">
+    <h1><span>Congrats</span>!</h1>
+    <div class="end-sub" data-es="Has completado 100 rondas" data-en="You completed 100 rounds">Has completado 100 rondas</div>
+    <div class="end-stats">
+      <div class="stat-cell">
+        <span class="stat-key" data-es="Hits" data-en="Hits">Hits</span>
+        <span class="stat-val" id="endHits">0</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-key" data-es="Esperado" data-en="Expected">Esperado</span>
+        <span class="stat-val" id="endExp">4.5</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-key" data-es="Desviación" data-en="Deviation">Desviación</span>
+        <span class="stat-val" id="endDev">0.0</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-key" data-es="P-Value" data-en="P-Value">P-Value</span>
+        <span class="stat-val" id="endPval">—</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="act-btn primary" id="endContinue" data-es="Continuar" data-en="Continue">Continuar</button>
+      <button class="act-btn" id="endReset" data-es="Nueva sesión" data-en="New session">Nueva sesión</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// ── QRNG ─────────────────────────────────────────────────
+// Duplicado de index.html para mantener remoteview.html autónoma.
+// Si en el futuro se extrae a /qrng.js compartido, eliminar este bloque
+// y sustituirlo por un script src apuntando a /qrng.js.
+const WORKER_URL = 'https://gentle-glitter-2552.oscardevalle.workers.dev';
+const QRNG_POOL_SIZE = 256;
+const QRNG_REFILL_THRESHOLD = 32;
+let quantumPool = [];
+let qrngLoading = false;
+const qrngDot = document.getElementById('qrngDot');
+
+function setQrngIndicator(state) {
+  qrngDot.classList.remove('quantum', 'local');
+  if (state === 'quantum') { qrngDot.classList.add('quantum'); qrngDot.title = 'QRNG cuántico activo'; }
+  else if (state === 'local') { qrngDot.classList.add('local'); qrngDot.title = 'Fallback local · Math.random()'; }
+}
+async function fillQuantumPool(silent = false) {
+  if (qrngLoading) return; qrngLoading = true;
+  try {
+    const res = await fetch(`${WORKER_URL}/qrng?length=${QRNG_POOL_SIZE}`, { cache: 'no-store' });
+    const data = await res.json();
+    if (res.ok && data.numbers && data.numbers.length > 0) {
+      quantumPool = data.numbers; setQrngIndicator('quantum');
+    } else throw new Error('empty');
+  } catch (e) { if (!silent) setQrngIndicator('local'); }
+  finally { qrngLoading = false; }
+}
+function getQuantumByte() {
+  if (quantumPool.length < QRNG_REFILL_THRESHOLD && !qrngLoading) fillQuantumPool(true);
+  if (quantumPool.length > 0) return quantumPool.pop();
+  setQrngIndicator('local');
+  return Math.floor(Math.random() * 256);
+}
+function getQuantumIndex(n) {
+  const max = 256 - (256 % n);
+  let b;
+  do { b = getQuantumByte(); } while (b >= max);
+  return b % n;
+}
+
+// ── DECKS ────────────────────────────────────────────────
+// Duplicado de index.html. Misma justificación que el QRNG.
+const DECKS = {
+  marsella: {
+    es: ["El Loco","El Mago","La Papisa","La Emperatriz","El Emperador","El Papa","El Enamorado","El Carro","La Fuerza","El Ermitaño","La Rueda de la Fortuna","La Justicia","El Colgado","La Muerte","La Templanza","El Diablo","La Torre","La Estrella","La Luna","El Sol","El Juicio","El Mundo"],
+    en: ["The Fool","The Magician","The Papess","The Empress","The Emperor","The Pope","The Lover","The Chariot","Strength","The Hermit","The Wheel of Fortune","The Justice","The Hanged Man","Death","The Temperance","The Devil","The Tower","The Star","The Moon","The Sun","The Judgement","The World"],
+    slugs: ["el-loco","el-mago","la-papisa","la-emperatriz","el-emperador","el-papa","el-enamorado","el-carro","la-fuerza","el-ermitano","la-rueda-de-la-fortuna","la-justicia","el-colgado","la-muerte","la-templanza","el-diablo","la-torre","la-estrella","la-luna","el-sol","el-juicio","el-mundo"],
+    path: '/cartas'
+  },
+  rider: {
+    es: ["El Loco","El Mago","La Sacerdotisa","La Emperatriz","El Emperador","El Papa","Los Enamorados","El Carro","La Fuerza","El Ermitaño","La Rueda de la Fortuna","La Justicia","El Colgado","La Muerte","La Templanza","El Diablo","La Torre","La Estrella","La Luna","El Sol","El Juicio","El Mundo"],
+    en: ["The Fool","The Magician","The High Priestess","The Empress","The Emperor","The Hierophant","The Lovers","The Chariot","Strength","The Hermit","The Wheel of Fortune","The Justice","The Hanged Man","Death","The Temperance","The Devil","The Tower","The Star","The Moon","The Sun","The Judgement","The World"],
+    slugs: ["the-fool","the-magician","the-high-priestess","the-empress","the-emperor","the-hierophant","the-lovers","the-chariot","the-strength","the-hermit","the-wheel-of-fortune","the-justice","the-hanged-man","the-death","the-temperance","the-devil","the-tower","the-star","the-moon","the-sun","the-judgement","the-world"],
+    path: '/cartas/rider'
+  }
+};
+
+// ── STATE ────────────────────────────────────────────────
+const ROUND_TOTAL = 100;
+const N_CARDS = 22;
+const P_HIT = 1 / N_CARDS;
+const LOG_KEY = 'arkana-rv-log';
+const MODE_KEY = 'arkana-rv-mode';
+const LOG_MAX = 1000;
+
+const PHASE = { SHOWN: 'shown', LOCKED: 'locked', REVEAL: 'reveal', ENDED: 'ended' };
+
+let currentDeck = (localStorage.getItem('arkana-deck') === 'rider') ? 'rider' : 'marsella';
+let currentLang = localStorage.getItem('arkana-lang') ||
+  ((navigator.language || 'es').toLowerCase().startsWith('es') ? 'es' : 'en');
+let currentMode = (localStorage.getItem(MODE_KEY) === 'clairv') ? 'clairv' : 'precog';
+
+// Round-scoped state. Target idx lives ONLY here — never in DOM.
+let predictionIdx = null;
+let targetIdx = null;
+let catalysts = [];      // array of 3 indices
+let phase = PHASE.SHOWN;
+let log = loadLog();
+// Track which modes have already shown the "100 rounds completed" modal in this
+// session so Continuar lets the user keep playing past the milestone.
+const endShownForMode = new Set();
+
+function loadLog() {
+  try {
+    const raw = localStorage.getItem(LOG_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch { return []; }
+}
+function saveLog() {
+  if (log.length > LOG_MAX) log = log.slice(-LOG_MAX);
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(log)); } catch {}
+}
+
+// ── DOM REFS ─────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const els = {
+  roundNum: $('roundNum'), roundTotal: $('roundTotal'),
+  modeTag: $('modeTag'), modeBanner: $('modeBanner'),
+  predCard: $('predictionCard'), predFace: $('predictionFace'),
+  predEmpty: $('predictionEmpty'), predName: $('predName'),
+  arrL: $('arrLeft'), arrR: $('arrRight'),
+  targetCard: $('targetCard'), targetInner: $('targetInner'),
+  targetFront: $('targetFront'), targetEmpty: $('targetEmpty'),
+  targetName: $('targetName'),
+  btnSubmit: $('btnSubmit'), btnHelp: $('btnHelp'),
+  hitsInline: $('hitsInline'), missesInline: $('missesInline'),
+  catalystRow: $('catalystRow'),
+  anaMode: $('anaMode'),
+  anaHits: $('anaHits'), anaExpected: $('anaExpected'),
+  anaDev: $('anaDev'), anaPval: $('anaPval'),
+  lineChart: $('lineChart'),
+  cmpPrecog: $('cmpPrecog'), cmpClairv: $('cmpClairv'),
+  pickerModal: $('pickerModal'), pickerGrid: $('pickerGrid'), pickerClose: $('pickerClose'),
+  helpModal: $('helpModal'), helpClose: $('helpClose'),
+  endModal: $('endModal'),
+  endHits: $('endHits'), endExp: $('endExp'), endDev: $('endDev'), endPval: $('endPval'),
+  endContinue: $('endContinue'), endReset: $('endReset'),
+  toast: $('toast'), board: $('board')
+};
+
+// ── I18N ─────────────────────────────────────────────────
+function applyLang() {
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-es]').forEach(el => {
+    const txt = el.dataset[currentLang];
+    if (!txt) return;
+    if (txt.includes('<')) el.innerHTML = txt;
+    else el.textContent = txt;
+  });
+  // Mode banner
+  const modeText = currentMode === 'precog'
+    ? (currentLang === 'es' ? 'Remote View · Precognición' : 'Remote View · Precognition')
+    : (currentLang === 'es' ? 'Remote View · Clarividencia' : 'Remote View · Clairvoyance');
+  els.modeBanner.textContent = modeText;
+  // Mode tag (compact)
+  els.modeTag.textContent = currentMode === 'precog' ? 'PRECOG' : 'CLAIRV';
+  els.modeTag.classList.toggle('clairv', currentMode === 'clairv');
+  $('anaMode').textContent = currentMode === 'precog' ? 'PRECOG' : 'CLAIRV';
+  // refresh prediction name and target name
+  renderPredictionName();
+  renderTargetName();
+}
+
+// ── RENDER ───────────────────────────────────────────────
+function deckDef() { return DECKS[currentDeck]; }
+function thumbPath(idx) { return `${deckDef().path}/thumb/${deckDef().slugs[idx]}.jpg`; }
+function fullPath(idx) { return `${deckDef().path}/${deckDef().slugs[idx]}.jpg`; }
+function cardName(idx) { return deckDef()[currentLang][idx]; }
+
+function renderPredictionName() {
+  if (predictionIdx === null) {
+    els.predName.textContent = currentLang === 'es' ? 'Selecciona' : 'Pick';
+    els.predName.classList.add('placeholder');
+  } else {
+    els.predName.textContent = cardName(predictionIdx);
+    els.predName.classList.remove('placeholder');
+  }
+}
+function renderTargetName() {
+  if (phase !== PHASE.REVEAL || targetIdx === null) {
+    els.targetName.textContent = currentLang === 'es' ? 'Pendiente' : 'Pending';
+    els.targetName.style.color = '';
+  } else {
+    els.targetName.textContent = cardName(targetIdx);
+  }
+}
+
+function renderPredictionCard() {
+  // clear existing img
+  els.predFace.querySelectorAll('img').forEach(n => n.remove());
+  if (predictionIdx === null) {
+    els.predEmpty.style.display = '';
+  } else {
+    els.predEmpty.style.display = 'none';
+    const img = new Image();
+    img.src = thumbPath(predictionIdx); img.alt = cardName(predictionIdx);
+    img.loading = 'lazy';
+    els.predFace.appendChild(img);
+  }
+  renderPredictionName();
+}
+
+function renderTargetCard() {
+  els.targetFront.querySelectorAll('img').forEach(n => n.remove());
+  els.targetCard.classList.remove('flipped', 'hit', 'miss');
+  if (currentMode === 'clairv' && phase !== PHASE.REVEAL && targetIdx !== null) {
+    // clairvoyance: card placed face-down (no image of identity in DOM)
+    els.targetCard.classList.add('flipped');
+    els.targetEmpty.style.display = 'none';
+  } else if (phase === PHASE.REVEAL && targetIdx !== null) {
+    // revealed: show the actual card on front
+    els.targetEmpty.style.display = 'none';
+    const img = new Image();
+    img.src = fullPath(targetIdx); img.alt = cardName(targetIdx);
+    els.targetFront.appendChild(img);
+    const hit = (predictionIdx === targetIdx);
+    els.targetCard.classList.add(hit ? 'hit' : 'miss');
+  } else {
+    // precognition shown phase or fresh start: empty placeholder
+    els.targetEmpty.style.display = '';
+  }
+  renderTargetName();
+}
+
+function renderCatalysts() {
+  els.catalystRow.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const div = document.createElement('div');
+    div.className = 'catalyst-card';
+    if (catalysts.length === 3) {
+      const img = new Image();
+      img.src = fullPath(catalysts[i]);
+      img.alt = cardName(catalysts[i]);
+      img.loading = 'lazy';
+      div.appendChild(img);
+    } else {
+      div.classList.add('empty');
+    }
+    els.catalystRow.appendChild(div);
+  }
+}
+
+function renderInlineStats() {
+  const cur = modeLog(currentMode);
+  const hits = cur.filter(r => r.hit).length;
+  els.hitsInline.textContent = hits;
+  els.missesInline.textContent = cur.length - hits;
+}
+
+// ── STATISTICS ───────────────────────────────────────────
+function logChoose(n, k) {
+  if (k < 0 || k > n) return -Infinity;
+  if (k === 0 || k === n) return 0;
+  if (k > n - k) k = n - k;
+  let r = 0;
+  for (let i = 1; i <= k; i++) r += Math.log(n - i + 1) - Math.log(i);
+  return r;
+}
+function binomPmf(n, k, p) {
+  if (p === 0) return k === 0 ? 1 : 0;
+  if (p === 1) return k === n ? 1 : 0;
+  const lp = logChoose(n, k) + k * Math.log(p) + (n - k) * Math.log(1 - p);
+  return Math.exp(lp);
+}
+function binomTwoSidedPval(n, k, p) {
+  if (n === 0) return 1;
+  const expected = n * p;
+  const dev = Math.abs(k - expected);
+  let s = 0;
+  for (let i = 0; i <= n; i++) {
+    if (Math.abs(i - expected) >= dev - 1e-9) s += binomPmf(n, i, p);
+  }
+  return Math.min(1, s);
+}
+
+function modeLog(mode) { return log.filter(r => r.mode === mode); }
+
+function renderAnalysis() {
+  const cur = modeLog(currentMode);
+  const n = cur.length;
+  const hits = cur.filter(r => r.hit).length;
+  const expected = n * P_HIT;
+  const dev = hits - expected;
+  const pval = n > 0 ? binomTwoSidedPval(n, hits, P_HIT) : null;
+
+  els.anaHits.textContent = hits;
+  els.anaExpected.textContent = expected.toFixed(2);
+  els.anaDev.textContent = (dev >= 0 ? '+' : '') + dev.toFixed(2);
+  $('anaDev').classList.toggle('pos', dev > 0.5);
+  $('anaDev').classList.toggle('neg', dev < -0.5);
+  if (pval === null) {
+    els.anaPval.textContent = '—';
+    els.anaPval.classList.remove('sig');
+  } else {
+    els.anaPval.textContent = pval < 0.001 ? pval.toExponential(2) : pval.toFixed(3);
+    els.anaPval.classList.toggle('sig', pval < 0.05);
+  }
+
+  // Cross-mode comparison
+  const precog = modeLog('precog');
+  const clairv = modeLog('clairv');
+  els.cmpPrecog.textContent = `${precog.filter(r => r.hit).length}/${precog.length}`;
+  els.cmpClairv.textContent = `${clairv.filter(r => r.hit).length}/${clairv.length}`;
+
+  drawChart(cur);
+}
+
+function drawChart(cur) {
+  const svg = els.lineChart;
+  const W = 200, H = 80, padL = 6, padR = 4, padT = 4, padB = 6;
+  const n = cur.length;
+  let path = '';
+  let expPath = '';
+  let pts = '';
+  if (n === 0) {
+    svg.innerHTML = `<text x="100" y="44" text-anchor="middle" font-family="Space Mono" font-size="6" fill="#555" letter-spacing="2">${currentLang === 'es' ? 'SIN DATOS' : 'NO DATA'}</text>`;
+    return;
+  }
+  const xs = i => padL + ((W - padL - padR) * i) / Math.max(1, n - 1);
+  const maxHits = Math.max(1, ...cur.map((_, i) => cumulativeHits(cur, i)));
+  const yMax = Math.max(maxHits, n * P_HIT) * 1.15 + 0.5;
+  const ys = h => H - padB - ((H - padT - padB) * h) / yMax;
+
+  for (let i = 0; i < n; i++) {
+    const h = cumulativeHits(cur, i);
+    const x = xs(i), y = ys(h);
+    path += (i === 0 ? `M${x.toFixed(1)} ${y.toFixed(1)}` : ` L${x.toFixed(1)} ${y.toFixed(1)}`);
+  }
+  // expected line
+  const x0 = xs(0), y0 = ys(0);
+  const x1 = xs(n - 1), y1 = ys((n - 1) * P_HIT);
+  expPath = `M${x0.toFixed(1)} ${y0.toFixed(1)} L${x1.toFixed(1)} ${y1.toFixed(1)}`;
+
+  // hit dots (small)
+  for (let i = 0; i < n; i++) {
+    if (cur[i].hit) {
+      const x = xs(i), y = ys(cumulativeHits(cur, i));
+      pts += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.5" fill="#22c55e"/>`;
+    }
+  }
+  svg.innerHTML = `
+    <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="#1e1e1e" stroke-width="0.5"/>
+    <path d="${expPath}" stroke="#ce9d06" stroke-width="0.7" stroke-dasharray="2 2" fill="none" opacity="0.7"/>
+    <path d="${path}" stroke="#e63030" stroke-width="1.2" fill="none"/>
+    ${pts}
+  `;
+}
+function cumulativeHits(cur, upToIdx) {
+  let h = 0;
+  for (let i = 0; i <= upToIdx; i++) if (cur[i].hit) h++;
+  return h;
+}
+
+// ── ROUND LIFECYCLE ──────────────────────────────────────
+function currentRoundIndex() {
+  // round number within current session (per mode)
+  return modeLog(currentMode).length;
+}
+
+function roundStart() {
+  const idx = currentRoundIndex();
+  if (idx >= ROUND_TOTAL && !endShownForMode.has(currentMode)) {
+    showEndModal();
+    phase = PHASE.ENDED;
+    return;
+  }
+  predictionIdx = null;
+  targetIdx = null;
+  catalysts = [];
+  phase = PHASE.SHOWN;
+  els.btnSubmit.disabled = true;
+  els.board.classList.remove('locked');
+
+  // Generate catalysts: 3 distinct indices (rejection on dup).
+  // NOTE: in BOTH modes the catalysts are generated at round start.
+  // The ORDER between target/catalysts differs by mode to honour the
+  // scientific distinction (target before vs after prediction).
+  if (currentMode === 'clairv') {
+    // Clairvoyance: target FIRST, then catalysts.
+    targetIdx = getQuantumIndex(N_CARDS);
+    catalysts = drawCatalysts();
+  } else {
+    // Precognition: catalysts first; target is generated only after Submit.
+    catalysts = drawCatalysts();
+    // targetIdx remains null until submit.
+  }
+  renderRound();
+}
+
+function drawCatalysts() {
+  const out = [];
+  let safety = 0;
+  while (out.length < 3 && safety < 200) {
+    const i = getQuantumIndex(N_CARDS);
+    if (!out.includes(i)) out.push(i);
+    safety++;
+  }
+  return out;
+}
+
+function renderRound() {
+  els.roundNum.textContent = currentRoundIndex() + 1;
+  renderPredictionCard();
+  renderTargetCard();
+  renderCatalysts();
+  renderInlineStats();
+  renderAnalysis();
+}
+
+function setPrediction(idx) {
+  if (phase !== PHASE.SHOWN) return;
+  predictionIdx = idx;
+  renderPredictionCard();
+  els.btnSubmit.disabled = false;
+}
+
+function nudgePrediction(delta) {
+  if (phase !== PHASE.SHOWN) return;
+  let next = (predictionIdx === null ? 0 : predictionIdx + delta);
+  next = (next + N_CARDS) % N_CARDS;
+  setPrediction(next);
+}
+
+function onSubmit() {
+  if (phase !== PHASE.SHOWN || predictionIdx === null) return;
+  phase = PHASE.LOCKED;
+  els.btnSubmit.disabled = true;
+  els.board.classList.add('locked');
+
+  // PRECOGNITION: target is selected NOW (after prediction is locked).
+  // This is the moment that distinguishes a precog test from a clairv test.
+  if (currentMode === 'precog') {
+    targetIdx = getQuantumIndex(N_CARDS);
+  }
+
+  // small delay then reveal (flip the target card)
+  setTimeout(() => {
+    phase = PHASE.REVEAL;
+    if (currentMode === 'clairv') {
+      // the card was face-down; un-flip it (rotateY back to 0)
+      els.targetCard.classList.remove('flipped');
+    }
+    renderTargetCard();
+    const hit = (predictionIdx === targetIdx);
+    log.push({
+      n: log.length + 1,
+      round: currentRoundIndex() + 1,
+      mode: currentMode,
+      deck: currentDeck,
+      prediction: predictionIdx,
+      target: targetIdx,
+      hit,
+      ts: Date.now()
+    });
+    saveLog();
+    renderInlineStats();
+    renderAnalysis();
+    renderTargetName();
+    showToast(hit ? (currentLang === 'es' ? '¡ACIERTO!' : 'HIT!')
+                  : (currentLang === 'es' ? 'FALLO' : 'MISS'), hit ? 'hit' : 'miss');
+    if (navigator.vibrate) navigator.vibrate(hit ? [40, 25, 40, 25, 40] : 20);
+    // advance after a delay
+    setTimeout(() => {
+      const total = modeLog(currentMode).length;
+      if (total >= ROUND_TOTAL && !endShownForMode.has(currentMode)) {
+        showEndModal();
+        phase = PHASE.ENDED;
+      } else {
+        roundStart();
+      }
+    }, 2000);
+  }, 650);
+}
+
+// ── PICKER ───────────────────────────────────────────────
+function buildPicker() {
+  els.pickerGrid.innerHTML = '';
+  for (let i = 0; i < N_CARDS; i++) {
+    const it = document.createElement('div');
+    it.className = 'picker-item';
+    if (i === predictionIdx) it.classList.add('selected');
+    it.tabIndex = 0;
+    it.setAttribute('role', 'button');
+    it.setAttribute('aria-label', cardName(i));
+    const img = new Image();
+    img.src = thumbPath(i); img.alt = cardName(i); img.loading = 'lazy';
+    it.appendChild(img);
+    const nm = document.createElement('div');
+    nm.className = 'pick-name';
+    nm.textContent = cardName(i);
+    it.appendChild(nm);
+    it.addEventListener('click', () => {
+      setPrediction(i);
+      closePicker();
+    });
+    it.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPrediction(i); closePicker(); }
+    });
+    els.pickerGrid.appendChild(it);
+  }
+}
+function openPicker() {
+  if (phase !== PHASE.SHOWN) return;
+  buildPicker();
+  els.pickerModal.classList.add('open');
+}
+function closePicker() { els.pickerModal.classList.remove('open'); }
+
+// ── MODALS ───────────────────────────────────────────────
+function openHelp() { els.helpModal.classList.add('open'); }
+function closeHelp() { els.helpModal.classList.remove('open'); }
+function showEndModal() {
+  const cur = modeLog(currentMode);
+  const n = cur.length;
+  const hits = cur.filter(r => r.hit).length;
+  const expected = n * P_HIT;
+  const dev = hits - expected;
+  const pval = binomTwoSidedPval(n, hits, P_HIT);
+  els.endHits.textContent = hits;
+  els.endExp.textContent = expected.toFixed(2);
+  els.endDev.textContent = (dev >= 0 ? '+' : '') + dev.toFixed(2);
+  els.endPval.textContent = pval < 0.001 ? pval.toExponential(2) : pval.toFixed(3);
+  els.endModal.classList.add('open');
+  endShownForMode.add(currentMode);
+}
+function closeEndModal() { els.endModal.classList.remove('open'); }
+
+// ── TOAST ────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(text, cls) {
+  els.toast.className = 'toast' + (cls ? ' ' + cls : '');
+  els.toast.textContent = text;
+  // force reflow then add show
+  void els.toast.offsetWidth;
+  els.toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => els.toast.classList.remove('show'), 1700);
+}
+
+// ── PERSISTENCE / EXPORT ─────────────────────────────────
+function exportLog() {
+  const blob = new Blob([JSON.stringify({
+    exported: new Date().toISOString(),
+    deck: currentDeck,
+    lang: currentLang,
+    rounds: log
+  }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `arkana-remoteview-${Date.now()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 800);
+}
+function resetSession() {
+  const ok = confirm(currentLang === 'es'
+    ? '¿Borrar el histórico completo de rondas?'
+    : 'Delete the full round history?');
+  if (!ok) return;
+  log = [];
+  saveLog();
+  endShownForMode.clear();
+  closeEndModal();
+  roundStart();
+}
+
+// ── TOGGLES ──────────────────────────────────────────────
+function setMode(m) {
+  if (m === currentMode) return;
+  if (phase === PHASE.LOCKED) return; // can't switch mid-flip
+  currentMode = m;
+  localStorage.setItem(MODE_KEY, m);
+  document.getElementById('btnPrecog').classList.toggle('active', m === 'precog');
+  document.getElementById('btnClairv').classList.toggle('active', m === 'clairv');
+  document.getElementById('btnPrecog').setAttribute('aria-selected', m === 'precog');
+  document.getElementById('btnClairv').setAttribute('aria-selected', m === 'clairv');
+  applyLang();
+  roundStart();
+}
+function setDeck(d) {
+  if (d === currentDeck) return;
+  currentDeck = d;
+  localStorage.setItem('arkana-deck', d);
+  document.getElementById('btnMarsella').classList.toggle('active', d === 'marsella');
+  document.getElementById('btnRider').classList.toggle('active', d === 'rider');
+  // Re-render visible cards with new deck art. Do NOT regenerate indices.
+  renderPredictionCard();
+  renderTargetCard();
+  renderCatalysts();
+}
+function setLang(l) {
+  if (l === currentLang) return;
+  currentLang = l;
+  localStorage.setItem('arkana-lang', l);
+  document.getElementById('btnES').classList.toggle('active', l === 'es');
+  document.getElementById('btnEN').classList.toggle('active', l === 'en');
+  applyLang();
+  renderAnalysis();
+}
+
+// ── EVENT BINDINGS ───────────────────────────────────────
+document.getElementById('btnPrecog').addEventListener('click', () => setMode('precog'));
+document.getElementById('btnClairv').addEventListener('click', () => setMode('clairv'));
+document.getElementById('btnMarsella').addEventListener('click', () => setDeck('marsella'));
+document.getElementById('btnRider').addEventListener('click', () => setDeck('rider'));
+document.getElementById('btnES').addEventListener('click', () => setLang('es'));
+document.getElementById('btnEN').addEventListener('click', () => setLang('en'));
+
+els.arrL.addEventListener('click', () => nudgePrediction(-1));
+els.arrR.addEventListener('click', () => nudgePrediction(+1));
+els.predCard.addEventListener('click', openPicker);
+els.predCard.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPicker(); }
+});
+els.btnSubmit.addEventListener('click', onSubmit);
+els.btnHelp.addEventListener('click', openHelp);
+els.helpClose.addEventListener('click', closeHelp);
+els.helpModal.addEventListener('click', e => { if (e.target === els.helpModal) closeHelp(); });
+els.pickerClose.addEventListener('click', closePicker);
+els.pickerModal.addEventListener('click', e => { if (e.target === els.pickerModal) closePicker(); });
+els.endContinue.addEventListener('click', () => { closeEndModal(); roundStart(); });
+els.endReset.addEventListener('click', resetSession);
+document.getElementById('btnExport').addEventListener('click', exportLog);
+document.getElementById('btnReset').addEventListener('click', resetSession);
+
+// keyboard shortcuts: arrows + enter
+document.addEventListener('keydown', e => {
+  if (els.pickerModal.classList.contains('open') || els.helpModal.classList.contains('open')) return;
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); nudgePrediction(-1); }
+  if (e.key === 'ArrowRight') { e.preventDefault(); nudgePrediction(+1); }
+  if (e.key === 'Enter' && !els.btnSubmit.disabled) { e.preventDefault(); onSubmit(); }
+});
+
+// ── INIT ─────────────────────────────────────────────────
+async function init() {
+  // sync toggles to persisted state
+  document.getElementById('btnPrecog').classList.toggle('active', currentMode === 'precog');
+  document.getElementById('btnClairv').classList.toggle('active', currentMode === 'clairv');
+  document.getElementById('btnMarsella').classList.toggle('active', currentDeck === 'marsella');
+  document.getElementById('btnRider').classList.toggle('active', currentDeck === 'rider');
+  document.getElementById('btnES').classList.toggle('active', currentLang === 'es');
+  document.getElementById('btnEN').classList.toggle('active', currentLang === 'en');
+  els.roundTotal.textContent = ROUND_TOTAL;
+  applyLang();
+  // warm up the quantum pool before first round
+  await fillQuantumPool(false);
+  // resume or start
+  if (currentRoundIndex() >= ROUND_TOTAL) {
+    showEndModal();
+    phase = PHASE.ENDED;
+  } else {
+    roundStart();
+  }
+  // register SW (PWA continuity)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+}
+init();
+</script>
+</body>
+</html>
