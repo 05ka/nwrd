@@ -96,7 +96,7 @@
     }
 
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .slot { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .slot { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
     .slot-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); }
     .slot-label.target { color: var(--red); }
 
@@ -162,7 +162,7 @@
     .arrow-btn:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
     .arrow-btn:disabled { opacity: 0.3; cursor: not-allowed; }
     .car-name {
-      flex: 1; text-align: center; font-size: 9px; letter-spacing: 0.12em;
+      flex: 1; min-width: 0; text-align: center; font-size: 9px; letter-spacing: 0.12em;
       text-transform: uppercase; color: var(--white);
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
@@ -818,7 +818,7 @@ function renderPredictionCard() {
   } else {
     els.predEmpty.style.display = 'none';
     const img = new Image();
-    img.src = thumbPath(predictionIdx); img.alt = cardName(predictionIdx);
+    img.src = fullPath(predictionIdx); img.alt = cardName(predictionIdx);
     img.loading = 'lazy';
     els.predFace.appendChild(img);
   }
