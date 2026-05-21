@@ -266,6 +266,8 @@
       transition: all 0.15s; border-radius: 2px;
     }
     .ctrl-btn:hover { border-color: var(--red); color: var(--red); }
+    .ctrl-btn[aria-pressed="true"] { border-color: var(--green); color: var(--green); }
+    .ctrl-btn[aria-pressed="false"] { border-color: var(--border); color: var(--gray); }
 
     /* ── FOOTER ─────────────────────────────────────────── */
     .foot {
@@ -558,6 +560,9 @@
         <span><span data-es="Clarividencia" data-en="Clairvoyance">Clarividencia</span>: <b id="cmpClairv">0/0</b></span>
       </div>
       <div class="controls-row">
+        <button class="ctrl-btn" id="btnAuto" aria-pressed="true" title="Avance automático tras cada round">
+          <span data-es="Auto" data-en="Auto">Auto</span>: <span id="autoState">ON</span>
+        </button>
         <button class="ctrl-btn" id="btnExport" data-es="Exportar JSON" data-en="Export JSON">Exportar JSON</button>
         <button class="ctrl-btn" id="btnReset" data-es="Reset" data-en="Reset">Reset</button>
       </div>
@@ -704,6 +709,8 @@ const N_CARDS = 22;
 const P_HIT = 1 / N_CARDS;
 const LOG_KEY = 'arkana-rv-log';
 const MODE_KEY = 'arkana-rv-mode';
+const AUTO_KEY = 'arkana-rv-auto';
+const AUTO_ADVANCE_MS = 2500;
 const LOG_MAX = 1000;
 
 const PHASE = { SHOWN: 'shown', LOCKED: 'locked', REVEAL: 'reveal', ENDED: 'ended' };
@@ -712,6 +719,8 @@ let currentDeck = (localStorage.getItem('arkana-deck') === 'rider') ? 'rider' : 
 let currentLang = localStorage.getItem('arkana-lang') ||
   ((navigator.language || 'es').toLowerCase().startsWith('es') ? 'es' : 'en');
 let currentMode = (localStorage.getItem(MODE_KEY) === 'clairv') ? 'clairv' : 'precog';
+let autoAdvance = (localStorage.getItem(AUTO_KEY) !== 'off');
+let advanceTimer = null;
 
 // Round-scoped state. Target idx lives ONLY here — never in DOM.
 let predictionIdx = null;
@@ -993,7 +1002,9 @@ function roundStart() {
   targetIdx = null;
   catalysts = [];
   phase = PHASE.SHOWN;
-  els.btnSubmit.disabled = true;
+  clearTimeout(advanceTimer);
+  advanceTimer = null;
+  setSubmitMode('submit');
   els.board.classList.remove('locked');
 
   // Generate catalysts: 3 distinct indices (rejection on dup).
@@ -1084,17 +1095,43 @@ function onSubmit() {
     showToast(hit ? (currentLang === 'es' ? '¡ACIERTO!' : 'HIT!')
                   : (currentLang === 'es' ? 'FALLO' : 'MISS'), hit ? 'hit' : 'miss');
     if (navigator.vibrate) navigator.vibrate(hit ? [40, 25, 40, 25, 40] : 20);
-    // advance after a delay
-    setTimeout(() => {
-      const total = modeLog(currentMode).length;
-      if (total >= ROUND_TOTAL && !endShownForMode.has(currentMode)) {
-        showEndModal();
-        phase = PHASE.ENDED;
-      } else {
-        roundStart();
-      }
-    }, 2000);
+
+    // Switch Submit → Next button. Manual click is always available so the
+    // user can advance immediately even when Auto is ON.
+    setSubmitMode('next');
+
+    // schedule auto-advance only if Auto is ON
+    if (autoAdvance) {
+      clearTimeout(advanceTimer);
+      advanceTimer = setTimeout(advanceRound, AUTO_ADVANCE_MS);
+    }
   }, 650);
+}
+
+function advanceRound() {
+  clearTimeout(advanceTimer);
+  advanceTimer = null;
+  const total = modeLog(currentMode).length;
+  if (total >= ROUND_TOTAL && !endShownForMode.has(currentMode)) {
+    showEndModal();
+    phase = PHASE.ENDED;
+    setSubmitMode('submit');
+  } else {
+    roundStart();
+  }
+}
+
+function setSubmitMode(mode) {
+  const btn = els.btnSubmit;
+  if (mode === 'next') {
+    btn.dataset.mode = 'next';
+    btn.textContent = currentLang === 'es' ? 'Siguiente →' : 'Next →';
+    btn.disabled = false;
+  } else {
+    btn.dataset.mode = 'submit';
+    btn.textContent = currentLang === 'es' ? 'Submit' : 'Submit';
+    btn.disabled = (predictionIdx === null);
+  }
 }
 
 // ── PICKER ───────────────────────────────────────────────
@@ -1237,7 +1274,10 @@ els.predCard.addEventListener('click', openPicker);
 els.predCard.addEventListener('keydown', e => {
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPicker(); }
 });
-els.btnSubmit.addEventListener('click', onSubmit);
+els.btnSubmit.addEventListener('click', () => {
+  if (els.btnSubmit.dataset.mode === 'next') advanceRound();
+  else onSubmit();
+});
 els.btnHelp.addEventListener('click', openHelp);
 els.helpClose.addEventListener('click', closeHelp);
 els.helpModal.addEventListener('click', e => { if (e.target === els.helpModal) closeHelp(); });
@@ -1247,13 +1287,38 @@ els.endContinue.addEventListener('click', () => { closeEndModal(); roundStart();
 els.endReset.addEventListener('click', resetSession);
 document.getElementById('btnExport').addEventListener('click', exportLog);
 document.getElementById('btnReset').addEventListener('click', resetSession);
+document.getElementById('btnAuto').addEventListener('click', toggleAuto);
+
+function toggleAuto() {
+  autoAdvance = !autoAdvance;
+  localStorage.setItem(AUTO_KEY, autoAdvance ? 'on' : 'off');
+  applyAutoState();
+  // If we just enabled Auto mid-reveal, start the timer now.
+  if (autoAdvance && phase === PHASE.REVEAL && !advanceTimer) {
+    advanceTimer = setTimeout(advanceRound, AUTO_ADVANCE_MS);
+  }
+  // If we just disabled Auto mid-countdown, cancel the timer.
+  if (!autoAdvance && advanceTimer) {
+    clearTimeout(advanceTimer);
+    advanceTimer = null;
+  }
+}
+function applyAutoState() {
+  const btn = document.getElementById('btnAuto');
+  btn.setAttribute('aria-pressed', autoAdvance ? 'true' : 'false');
+  document.getElementById('autoState').textContent = autoAdvance ? 'ON' : 'OFF';
+}
 
 // keyboard shortcuts: arrows + enter
 document.addEventListener('keydown', e => {
   if (els.pickerModal.classList.contains('open') || els.helpModal.classList.contains('open')) return;
   if (e.key === 'ArrowLeft')  { e.preventDefault(); nudgePrediction(-1); }
   if (e.key === 'ArrowRight') { e.preventDefault(); nudgePrediction(+1); }
-  if (e.key === 'Enter' && !els.btnSubmit.disabled) { e.preventDefault(); onSubmit(); }
+  if (e.key === 'Enter' && !els.btnSubmit.disabled) {
+    e.preventDefault();
+    if (els.btnSubmit.dataset.mode === 'next') advanceRound();
+    else onSubmit();
+  }
 });
 
 // ── INIT ─────────────────────────────────────────────────
@@ -1267,6 +1332,7 @@ async function init() {
   document.getElementById('btnEN').classList.toggle('active', currentLang === 'en');
   els.roundTotal.textContent = ROUND_TOTAL;
   applyLang();
+  applyAutoState();
   // warm up the quantum pool before first round
   await fillQuantumPool(false);
   // resume or start
