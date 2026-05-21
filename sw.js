@@ -1,12 +1,13 @@
 // ── Radio Arkana · Service Worker ──────────────────────────────────────────
 // Versión de caché — incrementar para forzar actualización
-const CACHE_VERSION = 'arkana-v42';
+const CACHE_VERSION = 'arkana-v43';
 
 // Assets que se cachean al instalar (shell de la app)
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/camera.html',
+  '/remoteview.html',
   '/manifest.json',
   '/camera-manifest.json',
   '/icon-192.png',
@@ -98,10 +99,14 @@ self.addEventListener('fetch', event => {
           if (cached) return cached;
           // Fallback de navegación:
           // — si la ruta es camera.html o empieza por /camera → servir camera.html
+          // — si la ruta es /remoteview* → servir remoteview.html
           // — cualquier otra navegación → index.html
           if (event.request.mode === 'navigate') {
             if (url.pathname.startsWith('/camera')) {
               return caches.match('/camera.html');
+            }
+            if (url.pathname.startsWith('/remoteview')) {
+              return caches.match('/remoteview.html');
             }
             return caches.match('/index.html');
           }
