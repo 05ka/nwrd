@@ -1,6 +1,6 @@
 // ── Radio Arkana · Service Worker ──────────────────────────────────────────
 // Versión de caché — incrementar para forzar actualización
-const CACHE_VERSION = 'arkana-v44';
+const CACHE_VERSION = 'arkana-v45';
 
 // Assets que se cachean al instalar (shell de la app)
 const PRECACHE_ASSETS = [
