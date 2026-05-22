@@ -511,6 +511,37 @@
 
   <hr class="divider">
 
+  <!-- ── §05c TAMAÑO DE BARAJA ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="05c · Tamaño de baraja" data-en="05c · Deck size">05c · Tamaño de baraja</p>
+    <h2 class="section-title" data-es="22 / 78" data-en="22 / 78">22 / 78</h2>
+    <p data-es="Junto al toggle de mazo aparece un segundo selector con dos posiciones: <strong>22</strong> y <strong>78</strong>. Decide qué porción del Tarot entra en la baraja virtual que el QRNG recorre para componer cada trío."
+       data-en="Next to the deck toggle there's a second selector with two positions: <strong>22</strong> and <strong>78</strong>. It decides which portion of the Tarot enters the virtual deck that the QRNG traverses to compose each trio.">Junto al toggle de mazo aparece un segundo selector con dos posiciones: <strong>22</strong> y <strong>78</strong>. Decide qué porción del Tarot entra en la baraja virtual que el QRNG recorre para componer cada trío.</p>
+
+    <div class="knob-grid">
+      <div class="knob-card">
+        <div class="knob-card-name">22</div>
+        <div class="knob-card-title" data-es="ARCANOS MAYORES" data-en="MAJOR ARCANA">ARCANOS MAYORES</div>
+        <p data-es="Solo los 22 arquetipos del viaje del Loco. La Letanía recita combinaciones más cargadas, densas, arquetípicas — el lenguaje primario del Tarot."
+           data-en="Only the 22 archetypes of the Fool's journey. The Litany recites combinations that are heavier, denser, archetypal — the Tarot's primary language.">Solo los 22 arquetipos del viaje del Loco. La Letanía recita combinaciones más cargadas, densas, arquetípicas — el lenguaje primario del Tarot.</p>
+      </div>
+      <div class="knob-card">
+        <div class="knob-card-name">78</div>
+        <div class="knob-card-title" data-es="MAZO COMPLETO" data-en="FULL DECK">MAZO COMPLETO</div>
+        <p data-es="Los 22 mayores más los 56 menores (Bastos, Copas, Oros, Espadas). Mayor diversidad combinatoria, más texturas cotidianas, mayor probabilidad de que aparezcan figuras y números que aterrizan los símbolos en el plano material."
+           data-en="The 22 majors plus the 56 minors (Wands, Cups, Pentacles, Swords). Greater combinatorial diversity, more everyday textures, higher chance of court cards and numerals that ground the symbols in the material plane.">Los 22 mayores más los 56 menores (Bastos, Copas, Oros, Espadas). Mayor diversidad combinatoria, más texturas cotidianas, mayor probabilidad de que aparezcan figuras y números que aterrizan los símbolos en el plano material.</p>
+      </div>
+    </div>
+
+    <div class="tip">
+      <div class="tip-label" data-es="Implicación matemática" data-en="Mathematical implication">Implicación matemática</div>
+      <p data-es="Con 22 cartas hay <strong>10.626 tríos distintos</strong> posibles. Con 78 cartas la cifra sube a <strong>76.076</strong>. Una sesión larga en modo 78 produce un espacio combinatorio mucho menos repetitivo."
+         data-en="With 22 cards there are <strong>10,626 distinct trios</strong> possible. With 78 the figure rises to <strong>76,076</strong>. A long session in 78 mode produces a combinatorial space much less repetitive.">Con 22 cartas hay <strong>10.626 tríos distintos</strong> posibles. Con 78 cartas la cifra sube a <strong>76.076</strong>. Una sesión larga en modo 78 produce un espacio combinatorio mucho menos repetitivo.</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
   <!-- ── §06 QRNG ── -->
   <section class="section fade-in">
     <p class="section-label" data-es="06 · Aleatoriedad cuántica" data-en="06 · Quantum randomness">06 · Aleatoriedad cuántica</p>
@@ -526,8 +557,8 @@
       <div class="qrng-block-title" data-es="Cómo funciona" data-en="How it works">Cómo funciona</div>
       <p data-es="Al pulsar play, la app solicita un lote de <strong>256 números cuánticos</strong> al servidor de Radio Arkana, que los obtiene en tiempo real del generador QRNG de la ANU. Cada número es un byte (0–255) producido por la medición de fluctuaciones del vacío electromagnético."
          data-en="When you press play, the app requests a batch of <strong>256 quantum numbers</strong> from the Radio Arkana server, which obtains them in real time from the ANU QRNG generator. Each number is a byte (0–255) produced by measuring electromagnetic vacuum fluctuations.">Al pulsar play, la app solicita un lote de <strong>256 números cuánticos</strong> al servidor de Radio Arkana, que los obtiene en tiempo real del generador QRNG de la ANU. Cada número es un byte (0–255) producido por la medición de fluctuaciones del vacío electromagnético.</p>
-      <p data-es="Cada tirada consume 3 bytes — uno por carta. El byte se convierte en índice de arcano mediante módulo 22. Cuando el lote se agota, la app solicita uno nuevo en segundo plano de forma transparente. Cada tirada es un evento <strong>físicamente irrepetible</strong>."
-         data-en="Each draw consumes 3 bytes — one per card. The byte is converted into an arcana index via modulo 22. When the batch runs out, the app requests a new one silently in the background. Each draw is a <strong>physically unrepeatable</strong> event.">Cada tirada consume 3 bytes — uno por carta. El byte se convierte en índice de arcano mediante módulo 22. Cuando el lote se agota, la app solicita uno nuevo en segundo plano de forma transparente. Cada tirada es un evento <strong>físicamente irrepetible</strong>.</p>
+      <p data-es="Cada tirada consume 3 bytes — uno por carta. El byte se convierte en índice de arcano mediante módulo 22 o 78 según el tamaño de baraja activo, con <em>rejection sampling</em> para descartar los bytes que introducirían sesgo. Cuando el lote se agota, la app solicita uno nuevo en segundo plano de forma transparente. Cada tirada es un evento <strong>físicamente irrepetible</strong>."
+         data-en="Each draw consumes 3 bytes — one per card. The byte is converted into an arcana index via modulo 22 or 78 depending on the active deck size, with <em>rejection sampling</em> to discard bytes that would introduce bias. When the batch runs out, the app requests a new one silently in the background. Each draw is a <strong>physically unrepeatable</strong> event.">Cada tirada consume 3 bytes — uno por carta. El byte se convierte en índice de arcano mediante módulo 22 o 78 según el tamaño de baraja activo, con <em>rejection sampling</em> para descartar los bytes que introducirían sesgo. Cuando el lote se agota, la app solicita uno nuevo en segundo plano de forma transparente. Cada tirada es un evento <strong>físicamente irrepetible</strong>.</p>
       <p data-es="No hay mazo barajado ni memoria entre tiradas: la misma carta puede aparecer varias veces seguidas, exactamente como ocurre en la naturaleza cuántica. El orden emerge del caos real, no de una permutación calculada."
          data-en="There is no shuffled deck or memory between draws: the same card can appear several times in a row, exactly as happens in quantum nature. Order emerges from real chaos, not from a calculated permutation.">No hay mazo barajado ni memoria entre tiradas: la misma carta puede aparecer varias veces seguidas, exactamente como ocurre en la naturaleza cuántica. El orden emerge del caos real, no de una permutación calculada.</p>
     </div>
@@ -556,6 +587,179 @@
       <div class="tip-label" data-es="Modo sin conexión" data-en="Offline mode">Modo sin conexión</div>
       <p data-es="Si usas la app sin acceso a internet, el indicador permanece en <strong>⟳</strong> y las tiradas usan el generador pseudoaleatorio del dispositivo como fallback automático. La experiencia es idéntica — solo cambia la fuente de la aleatoriedad."
          data-en="If you use the app without internet access, the indicator stays at <strong>⟳</strong> and draws use the device pseudorandom generator as automatic fallback. The experience is identical — only the source of randomness changes.">Si usas la app sin acceso a internet, el indicador permanece en <strong>⟳</strong> y las tiradas usan el generador pseudoaleatorio del dispositivo como fallback automático. La experiencia es idéntica — solo cambia la fuente de la aleatoriedad.</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── §06b DOJO · REMOTE VIEW ── -->
+  <section class="section fade-in">
+    <p class="section-label" data-es="06b · Dojo" data-en="06b · Dojo">06b · Dojo</p>
+    <h2 class="section-title" data-es="REMOTE<br><span>VIEW</span>" data-en="REMOTE<br><span>VIEW</span>">REMOTE<br><span>VIEW</span></h2>
+
+    <p data-es="El enlace <strong>dojo</strong> del footer abre <code>remoteview.html</code>: una página dedicada al uso del QRNG no como compositor de letanías sino como <strong>oráculo de prueba</strong>. El sujeto intenta acertar la carta que la baraja virtual va a revelar, ronda tras ronda, mientras la app registra cada acierto y fallo y calcula en tiempo real si los resultados se desvían del azar."
+       data-en="The <strong>dojo</strong> link in the footer opens <code>remoteview.html</code>: a page dedicated to using the QRNG not as a litany composer but as a <strong>testing oracle</strong>. The subject tries to predict the card the virtual deck will reveal, round after round, while the app logs every hit and miss and calculates in real time whether results deviate from chance.">El enlace <strong>dojo</strong> del footer abre <code>remoteview.html</code>: una página dedicada al uso del QRNG no como compositor de letanías sino como <strong>oráculo de prueba</strong>. El sujeto intenta acertar la carta que la baraja virtual va a revelar, ronda tras ronda, mientras la app registra cada acierto y fallo y calcula en tiempo real si los resultados se desvían del azar.</p>
+
+    <p data-es="No es un juego ni una herramienta de adivinación. Es una <strong>cámara de niebla</strong> diseñada para que cualquier potencial fenómeno psi (precognición, clarividencia, telepatía) deje huella estadística si existe — y para que su ausencia sea igualmente legible."
+       data-en="It is neither a game nor a divination tool. It is a <strong>cloud chamber</strong> designed so that any potential psi phenomenon (precognition, clairvoyance, telepathy) leaves a statistical trace if it exists — and so that its absence is equally readable.">No es un juego ni una herramienta de adivinación. Es una <strong>cámara de niebla</strong> diseñada para que cualquier potencial fenómeno psi (precognición, clarividencia, telepatía) deje huella estadística si existe — y para que su ausencia sea igualmente legible.</p>
+
+    <!-- Los dos modos -->
+    <p class="section-label" style="margin-top:36px" data-es="Los dos modos" data-en="The two modes">Los dos modos</p>
+    <p data-es="El toggle <strong>Pre / Cla</strong> de la cabecera cambia por completo la naturaleza del fenómeno que se está testeando — no solo la interfaz."
+       data-en="The <strong>Pre / Cla</strong> toggle in the header completely changes the nature of the phenomenon being tested — not just the interface.">El toggle <strong>Pre / Cla</strong> de la cabecera cambia por completo la naturaleza del fenómeno que se está testeando — no solo la interfaz.</p>
+
+    <div class="knob-grid">
+      <div class="knob-card">
+        <div class="knob-card-name">PRE</div>
+        <div class="knob-card-title" data-es="PRECOGNICIÓN" data-en="PRECOGNITION">PRECOGNICIÓN</div>
+        <p data-es="Las 3 cartas catalizadoras se muestran primero. Eliges tu predicción. <strong>Solo entonces</strong> el QRNG genera la carta target. Estás intentando percibir algo que <em>aún no existe</em>."
+           data-en="The 3 catalyst cards are shown first. You pick your prediction. <strong>Only then</strong> does the QRNG generate the target card. You are trying to perceive something that <em>does not yet exist</em>.">Las 3 cartas catalizadoras se muestran primero. Eliges tu predicción. <strong>Solo entonces</strong> el QRNG genera la carta target. Estás intentando percibir algo que <em>aún no existe</em>.</p>
+      </div>
+      <div class="knob-card">
+        <div class="knob-card-name">CLA</div>
+        <div class="knob-card-title" data-es="CLARIVIDENCIA" data-en="CLAIRVOYANCE">CLARIVIDENCIA</div>
+        <p data-es="El QRNG genera la target <strong>antes</strong> de empezar la ronda y la coloca boca abajo. Las catalizadoras y tu predicción vienen después. Estás intentando percibir algo que <em>ya existe pero está oculto</em>."
+           data-en="The QRNG generates the target <strong>before</strong> the round starts and places it face-down. The catalysts and your prediction come after. You are trying to perceive something that <em>already exists but is hidden</em>.">El QRNG genera la target <strong>antes</strong> de empezar la ronda y la coloca boca abajo. Las catalizadoras y tu predicción vienen después. Estás intentando percibir algo que <em>ya existe pero está oculto</em>.</p>
+      </div>
+    </div>
+
+    <p data-es="La diferencia es metafísicamente enorme y operativamente sutil — visualmente las dos modalidades comparten el mismo display. Cambia solo el orden cronológico interno de las llamadas al QRNG. El sistema está blindado para que <strong>la identidad de la target en clarividencia jamás aparezca en el DOM ni en los metadatos</strong> hasta el momento del flip: el sujeto no puede descubrirla inspeccionando la página."
+       data-en="The difference is metaphysically enormous and operationally subtle — visually the two modes share the same display. Only the internal chronological order of the QRNG calls changes. The system is hardened so that <strong>the identity of the target in clairvoyance never appears in the DOM or metadata</strong> until the flip moment: the subject cannot discover it by inspecting the page.">La diferencia es metafísicamente enorme y operativamente sutil — visualmente las dos modalidades comparten el mismo display. Cambia solo el orden cronológico interno de las llamadas al QRNG. El sistema está blindado para que <strong>la identidad de la target en clarividencia jamás aparezca en el DOM ni en los metadatos</strong> hasta el momento del flip: el sujeto no puede descubrirla inspeccionando la página.</p>
+
+    <!-- Flujo de una ronda -->
+    <p class="section-label" style="margin-top:36px" data-es="Flujo de una ronda" data-en="Round flow">Flujo de una ronda</p>
+    <div class="status-list">
+      <div class="status-item">
+        <div class="status-dot red"></div>
+        <div class="status-info">
+          <div class="status-name" data-es="1. Trigger / Catalizador" data-en="1. Trigger / Catalyst">1. Trigger / Catalizador</div>
+          <div class="status-desc" data-es="Tres cartas se muestran boca arriba en la fila inferior. No están conectadas causalmente con la target — son disparadores intuitivos." data-en="Three cards appear face-up in the bottom row. They are not causally connected to the target — they are intuitive triggers.">Tres cartas se muestran boca arriba en la fila inferior. No están conectadas causalmente con la target — son disparadores intuitivos.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot amber"></div>
+        <div class="status-info">
+          <div class="status-name" data-es="2. Predicción" data-en="2. Prediction">2. Predicción</div>
+          <div class="status-desc" data-es="Eliges la carta que crees que será la target. Flechas ◀ ▶ para ciclar, o toca la carta de predicción para abrir el grid completo del mazo." data-en="You pick the card you think will be the target. Arrows ◀ ▶ to cycle, or tap the prediction card to open the full deck grid.">Eliges la carta que crees que será la target. Flechas ◀ ▶ para ciclar, o toca la carta de predicción para abrir el grid completo del mazo.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot amber"></div>
+        <div class="status-info">
+          <div class="status-name" data-es="3. Submit" data-en="3. Submit">3. Submit</div>
+          <div class="status-desc" data-es="Bloquea la predicción. En modo Pre, ahora es cuando el QRNG decide la target. En modo Cla, la target ya estaba decidida desde el inicio." data-en="Locks your prediction. In Pre mode, this is when the QRNG decides the target. In Cla mode, the target was already decided at round start.">Bloquea la predicción. En modo Pre, ahora es cuando el QRNG decide la target. En modo Cla, la target ya estaba decidida desde el inicio.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot red"></div>
+        <div class="status-info">
+          <div class="status-name" data-es="4. Revelación" data-en="4. Reveal">4. Revelación</div>
+          <div class="status-desc" data-es="La target se voltea con animación flip 3D. Hit o miss queda registrado en el log y las estadísticas se actualizan. Aparece el botón Siguiente." data-en="The target flips with a 3D animation. Hit or miss is logged and statistics update. The Next button appears.">La target se voltea con animación flip 3D. Hit o miss queda registrado en el log y las estadísticas se actualizan. Aparece el botón Siguiente.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggles Trigger × Target -->
+    <p class="section-label" style="margin-top:36px" data-es="Trigger × Target" data-en="Trigger × Target">Trigger × Target</p>
+    <p data-es="Bajo la cabecera hay dos toggles independientes que controlan los pools de cartas:"
+       data-en="Below the header there are two independent toggles that control the card pools:">Bajo la cabecera hay dos toggles independientes que controlan los pools de cartas:</p>
+
+    <div class="knob-grid">
+      <div class="knob-card">
+        <div class="knob-card-name" data-es="Trigger" data-en="Trigger">Trigger</div>
+        <div class="knob-card-title" data-es="POOL CATALIZADOR" data-en="CATALYST POOL">POOL CATALIZADOR</div>
+        <p data-es="De qué baraja salen las 3 cartas catalizadoras. Más estimulación visual con 78 — más densidad arquetípica con 22."
+           data-en="Which deck the 3 catalyst cards are drawn from. More visual stimulation with 78 — more archetypal density with 22.">De qué baraja salen las 3 cartas catalizadoras. Más estimulación visual con 78 — más densidad arquetípica con 22.</p>
+      </div>
+      <div class="knob-card">
+        <div class="knob-card-name" data-es="Target" data-en="Target">Target</div>
+        <div class="knob-card-title" data-es="POOL OBJETIVO" data-en="TARGET POOL">POOL OBJETIVO</div>
+        <p data-es="De qué baraja sale el target y, en consecuencia, qué cartas puedes elegir como predicción. <strong>p₀ = 1/22 ≈ 4.55%</strong> en modo 22 · <strong>p₀ = 1/78 ≈ 1.28%</strong> en modo 78."
+           data-en="Which deck the target is drawn from and, accordingly, which cards you can pick as prediction. <strong>p₀ = 1/22 ≈ 4.55%</strong> in 22 mode · <strong>p₀ = 1/78 ≈ 1.28%</strong> in 78 mode.">De qué baraja sale el target y, en consecuencia, qué cartas puedes elegir como predicción. <strong>p₀ = 1/22 ≈ 4.55%</strong> en modo 22 · <strong>p₀ = 1/78 ≈ 1.28%</strong> en modo 78.</p>
+      </div>
+    </div>
+
+    <div class="tip">
+      <div class="tip-label" data-es="Por qué son independientes" data-en="Why they are independent">Por qué son independientes</div>
+      <p data-es="Puedes combinar trigger y target de forma asimétrica (22×78, 78×22…) para explorar si la riqueza del estímulo catalizador afecta a la capacidad de acertar la target. Cuatro experimentos distintos por modo, ocho en total. Cada combinación tiene su propio slice de estadísticas y su propio contador de rondas."
+         data-en="You can combine trigger and target asymmetrically (22×78, 78×22…) to explore whether the richness of the catalyst stimulus affects target hit rate. Four distinct experiments per mode, eight in total. Each combination has its own stats slice and its own round counter.">Puedes combinar trigger y target de forma asimétrica (22×78, 78×22…) para explorar si la riqueza del estímulo catalizador afecta a la capacidad de acertar la target. Cuatro experimentos distintos por modo, ocho en total. Cada combinación tiene su propio slice de estadísticas y su propio contador de rondas.</p>
+    </div>
+
+    <!-- Lectura del panel -->
+    <p class="section-label" style="margin-top:36px" data-es="Lectura del panel de análisis" data-en="Reading the analysis panel">Lectura del panel de análisis</p>
+    <div class="status-list">
+      <div class="status-item">
+        <div class="status-dot red"></div>
+        <div class="status-info">
+          <div class="status-name">Hits</div>
+          <div class="status-desc" data-es="Número de aciertos acumulados en este slice (mismo modo + misma configuración Trigger/Target)." data-en="Number of hits accumulated in this slice (same mode + same Trigger/Target config).">Número de aciertos acumulados en este slice (mismo modo + misma configuración Trigger/Target).</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot amber"></div>
+        <div class="status-info">
+          <div class="status-name" data-es="Esperado" data-en="Expected">Esperado</div>
+          <div class="status-desc" data-es="Hits que cabría esperar por azar puro: n × p₀ donde n es el número de rondas jugadas y p₀ = 1/Target." data-en="Hits expected from pure chance: n × p₀ where n is the number of rounds played and p₀ = 1/Target.">Hits que cabría esperar por azar puro: n × p₀ donde n es el número de rondas jugadas y p₀ = 1/Target.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot red"></div>
+        <div class="status-info">
+          <div class="status-name" data-es="Desviación" data-en="Deviation">Desviación</div>
+          <div class="status-desc" data-es="Hits − Esperado. Positiva sugiere que estás por encima del azar, negativa por debajo. Una desviación pequeña en pocas rondas no significa nada — necesitas muestra grande." data-en="Hits − Expected. Positive suggests you're above chance, negative below. A small deviation in few rounds is meaningless — you need a large sample.">Hits − Esperado. Positiva sugiere que estás por encima del azar, negativa por debajo. Una desviación pequeña en pocas rondas no significa nada — necesitas muestra grande.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot red"></div>
+        <div class="status-info">
+          <div class="status-name">P-Value</div>
+          <div class="status-desc" data-es="Test binomial bilateral. Probabilidad de obtener una desviación al menos tan extrema como la observada bajo H₀ (azar). Por debajo de 0.05 el panel lo destaca en ámbar — sugerente, no probatorio." data-en="Two-sided binomial test. Probability of getting a deviation at least as extreme as observed under H₀ (chance). Below 0.05 the panel highlights it in amber — suggestive, not probative.">Test binomial bilateral. Probabilidad de obtener una desviación al menos tan extrema como la observada bajo H₀ (azar). Por debajo de 0.05 el panel lo destaca en ámbar — sugerente, no probatorio.</div>
+        </div>
+      </div>
+    </div>
+
+    <p data-es="El gráfico de líneas debajo de los números muestra los hits acumulados (línea roja) contra la trayectoria esperada por azar (línea ámbar discontinua). Visualmente, una racha psi sostenida levanta la roja sobre la ámbar; una sequía la hunde."
+       data-en="The line chart below the numbers shows cumulative hits (red line) against the chance trajectory (dashed amber line). Visually, a sustained psi streak lifts red above amber; a drought sinks it.">El gráfico de líneas debajo de los números muestra los hits acumulados (línea roja) contra la trayectoria esperada por azar (línea ámbar discontinua). Visualmente, una racha psi sostenida levanta la roja sobre la ámbar; una sequía la hunde.</p>
+
+    <p data-es="El bloque <strong>Comparativa Cruzada</strong> al pie del panel muestra, lado a lado, el ratio hits/rondas del modo opuesto bajo la misma configuración Trigger/Target. Es el control interno que te permite comparar tu rendimiento en precognición vs clarividencia."
+       data-en="The <strong>Cross-Mode Comparison</strong> block at the bottom of the panel shows, side by side, the hits/rounds ratio of the opposite mode under the same Trigger/Target config. It is the internal control that lets you compare your precognition vs clairvoyance performance.">El bloque <strong>Comparativa Cruzada</strong> al pie del panel muestra, lado a lado, el ratio hits/rondas del modo opuesto bajo la misma configuración Trigger/Target. Es el control interno que te permite comparar tu rendimiento en precognición vs clarividencia.</p>
+
+    <!-- Controles auxiliares -->
+    <p class="section-label" style="margin-top:36px" data-es="Controles auxiliares" data-en="Auxiliary controls">Controles auxiliares</p>
+    <div class="knob-grid">
+      <div class="knob-card">
+        <div class="knob-card-name">Auto</div>
+        <div class="knob-card-title" data-es="AVANCE AUTOMÁTICO" data-en="AUTO-ADVANCE">AVANCE AUTOMÁTICO</div>
+        <p data-es="ON (default): la siguiente ronda arranca sola tras 2.5 s desde el reveal. OFF: el botón Siguiente espera tu click. Útil si quieres contemplar cada target en detalle antes de continuar."
+           data-en="ON (default): the next round starts on its own 2.5 s after reveal. OFF: the Next button awaits your click. Useful if you want to contemplate each target in detail before continuing.">ON (default): la siguiente ronda arranca sola tras 2.5 s desde el reveal. OFF: el botón Siguiente espera tu click. Útil si quieres contemplar cada target en detalle antes de continuar.</p>
+      </div>
+      <div class="knob-card">
+        <div class="knob-card-name" data-es="Exportar" data-en="Export">Exportar</div>
+        <div class="knob-card-title" data-es="JSON" data-en="JSON">JSON</div>
+        <p data-es="Descarga el log completo de rondas como JSON: índices de predicción y target, modo, mazo, configuración Trigger/Target, hit/miss y timestamp. Para análisis externo o publicación de datos."
+           data-en="Downloads the full round log as JSON: prediction and target indices, mode, deck, Trigger/Target config, hit/miss and timestamp. For external analysis or data publication.">Descarga el log completo de rondas como JSON: índices de predicción y target, modo, mazo, configuración Trigger/Target, hit/miss y timestamp. Para análisis externo o publicación de datos.</p>
+      </div>
+      <div class="knob-card">
+        <div class="knob-card-name">Reset</div>
+        <div class="knob-card-title" data-es="LIMPIAR LOG" data-en="WIPE LOG">LIMPIAR LOG</div>
+        <p data-es="Borra el histórico completo (todas las configuraciones, ambos modos). Acción irreversible — pide confirmación. Útil para empezar una sesión de medición limpia."
+           data-en="Wipes the full history (all configs, both modes). Irreversible — asks for confirmation. Useful for starting a clean measurement session.">Borra el histórico completo (todas las configuraciones, ambos modos). Acción irreversible — pide confirmación. Útil para empezar una sesión de medición limpia.</p>
+      </div>
+    </div>
+
+    <div class="tip">
+      <div class="tip-label" data-es="100 rondas como hito" data-en="100 rounds as milestone">100 rondas como hito</div>
+      <p data-es="Cada slice tiene un contador 1/100. Al llegar a 100 sale un modal con el resumen estadístico. No es un cap — puedes seguir jugando indefinidamente desde ahí. 100 es un punto de medición estándar en parapsicología experimental: suficiente para que el test binomial empiece a tener algo de potencia."
+         data-en="Each slice has a 1/100 counter. At 100 a modal appears with the statistical summary. It is not a cap — you can keep playing indefinitely from there. 100 is a standard measurement point in experimental parapsychology: enough for the binomial test to start having some power.">Cada slice tiene un contador 1/100. Al llegar a 100 sale un modal con el resumen estadístico. No es un cap — puedes seguir jugando indefinidamente desde ahí. 100 es un punto de medición estándar en parapsicología experimental: suficiente para que el test binomial empiece a tener algo de potencia.</p>
+    </div>
+
+    <!-- Aviso epistémico -->
+    <div class="preset-block">
+      <div class="preset-block-title" data-es="Lo que sí es y lo que no es" data-en="What it is and what it isn't">Lo que sí es y lo que no es</div>
+      <p data-es="El Dojo <strong>no demuestra</strong> la existencia de psi. Un p-value bajo no equivale a prueba: significa que el patrón observado es difícil de explicar por suerte pura bajo el modelo nulo. Tampoco descarta nada: ausencia de evidencia no es evidencia de ausencia, especialmente con muestras pequeñas."
+         data-en="The Dojo <strong>does not prove</strong> the existence of psi. A low p-value is not equivalent to proof: it means the observed pattern is hard to explain by pure luck under the null model. Nor does it rule anything out: absence of evidence is not evidence of absence, especially with small samples.">El Dojo <strong>no demuestra</strong> la existencia de psi. Un p-value bajo no equivale a prueba: significa que el patrón observado es difícil de explicar por suerte pura bajo el modelo nulo. Tampoco descarta nada: ausencia de evidencia no es evidencia de ausencia, especialmente con muestras pequeñas.</p>
+      <p data-es="Lo que sí es: un entorno limpio para producir <strong>datos honestos</strong>. La aleatoriedad es real (QRNG cuántico, no PRNG), el target en clarividencia está protegido de fugas por el DOM, y el log queda disponible para análisis posterior. Lo que hagas con esos datos — y la interpretación que les des — depende de ti."
+         data-en="What it is: a clean environment to produce <strong>honest data</strong>. The randomness is real (quantum QRNG, not PRNG), the target in clairvoyance is protected from DOM leakage, and the log is available for later analysis. What you do with that data — and the interpretation you give it — is up to you.">Lo que sí es: un entorno limpio para producir <strong>datos honestos</strong>. La aleatoriedad es real (QRNG cuántico, no PRNG), el target en clarividencia está protegido de fugas por el DOM, y el log queda disponible para análisis posterior. Lo que hagas con esos datos — y la interpretación que les des — depende de ti.</p>
     </div>
   </section>
 
