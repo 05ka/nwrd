@@ -1115,17 +1115,26 @@
     const msg = new SpeechSynthesisUtterance(`${currentTrio[0]}, ${cfg.conj} ${currentTrio[1]}, ${cfg.and} ${currentTrio[2]}.`);
     msg.lang   = cfg.lang; msg.rate = window._swTTSRate ?? 0.7; msg.pitch = window._swTTSPitch ?? 1.0;
     msg.volume = parseFloat(document.getElementById('volume').value ?? 1);
+    let ended = false;
     msg.onstart = () => { ttsSpeaking=true; };
     msg.onend   = () => {
+      if (ended) return;
+      ended = true;
       ttsSpeaking=false; if (currentMode!=='TTS') return;
       if (repCount>=loopReps) repCount=0;
-      let secsLeft=Math.round(pauseDuration/1000);
-      setRepLabels(`Rep ${repCount||loopReps}/${loopReps}`,` ${secsLeft}s`,false,true);
+      const endAt = Date.now() + pauseDuration;
+      const initialSecs = Math.round(pauseDuration/1000);
+      setRepLabels(`Rep ${repCount||loopReps}/${loopReps}`,` ${initialSecs}s`,false,true);
       clearInterval(countdownInterval);
-      countdownInterval=setInterval(()=>{ secsLeft--; if (secsLeft>0) pauseLabel.textContent=` ${secsLeft}s`; else { clearInterval(countdownInterval); countdownInterval=null; } },1000);
-      ttsTimer=setTimeout(()=>{ clearInterval(countdownInterval); countdownInterval=null; runTTSLoop(); },pauseDuration);
+      clearTimeout(ttsTimer);
+      countdownInterval=setInterval(()=>{
+        const remaining = endAt - Date.now();
+        if (remaining > 0) pauseLabel.textContent = ` ${Math.ceil(remaining/1000)}s`;
+        else { clearInterval(countdownInterval); countdownInterval=null; }
+      },250);
+      ttsTimer=setTimeout(()=>{ clearInterval(countdownInterval); countdownInterval=null; ttsTimer=null; runTTSLoop(); },pauseDuration);
     };
-    msg.onerror=()=>{ ttsSpeaking=false; if (currentMode!=='TTS') return; ttsTimer=setTimeout(runTTSLoop,5000); };
+    msg.onerror=()=>{ if (ended) return; ended = true; ttsSpeaking=false; if (currentMode!=='TTS') return; clearTimeout(ttsTimer); ttsTimer=setTimeout(runTTSLoop,5000); };
     window.speechSynthesis.speak(msg);
   }
 
