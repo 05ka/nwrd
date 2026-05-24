@@ -1,6 +1,6 @@
 // ── Radio Arkana · Service Worker ──────────────────────────────────────────
 // Versión de caché — incrementar para forzar actualización
-const CACHE_VERSION = 'arkana-v46';
+const CACHE_VERSION = 'arkana-v45';
 
 // Assets que se cachean al instalar (shell de la app)
 const PRECACHE_ASSETS = [
@@ -10,6 +10,7 @@ const PRECACHE_ASSETS = [
   '/remoteview.html',
   '/manifest.json',
   '/camera-manifest.json',
+  '/arkana-audio.js',
   '/icon-192.png',
   '/icon-512.png',
   '/icon-cam-192.png',
