@@ -280,10 +280,22 @@
     .catalyst-section { margin-top: 22px; }
     .catalyst-label {
       font-size: 8px; letter-spacing: 0.3em; text-transform: uppercase;
-      text-align: center; color: var(--red); margin-bottom: 10px;
+      text-align: center; color: var(--red); margin-bottom: 4px;
     }
+    .catalyst-hint {
+      font-size: 7px; letter-spacing: 0.22em; text-transform: uppercase;
+      text-align: center; color: var(--gray); margin-bottom: 10px;
+      transition: color 0.2s, opacity 0.3s;
+    }
+    .board.locked .catalyst-hint { opacity: 0.25; }
     .catalyst-row {
       display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+      cursor: pointer;
+      touch-action: manipulation; /* mata el zoom de doble-tap en móvil */
+    }
+    .board.locked .catalyst-row { cursor: default; }
+    .catalyst-row.reroll-flash .catalyst-card {
+      box-shadow: 0 0 18px rgba(230,48,48,0.35);
     }
     .catalyst-card {
       aspect-ratio: 205 / 390; border: 1px solid var(--border); border-radius: 4px;
@@ -660,8 +672,9 @@
     </div>
 
     <!-- catalysts -->
-    <div class="catalyst-section">
+    <div class="catalyst-section" id="catalystSection">
       <div class="catalyst-label" data-es="Trigger / Catalizador" data-en="Trigger / Catalyst">Trigger / Catalizador</div>
+      <div class="catalyst-hint" id="catalystHint" data-es="Doble tap · nueva triada" data-en="Double tap · new triad">Doble tap · nueva triada</div>
       <div class="catalyst-row" id="catalystRow">
         <div class="catalyst-card empty"></div>
         <div class="catalyst-card empty"></div>
@@ -742,6 +755,10 @@
     <h3 data-es="Modo Clarividencia" data-en="Clairvoyance Mode">Modo Clarividencia</h3>
     <p data-es="El sistema selecciona el Target <strong>antes</strong> de empezar la ronda y lo coloca boca abajo. Las 3 cartas catalizadoras sirven para sintonizar con la identidad ya determinada del Target. Cuando pulsas <em>Submit</em>, el Target se voltea. Pones a prueba la <strong>clarividencia</strong>: percibir algo que ya existe pero está oculto."
        data-en="The system picks the Target <strong>before</strong> the round starts and places it face-down. The 3 catalyst cards help you tune in to the Target's already-determined identity. When you press <em>Submit</em>, the Target flips. You're testing <strong>clairvoyance</strong>: perceiving something that already exists but is hidden.">El sistema selecciona el Target <strong>antes</strong> de empezar la ronda y lo coloca boca abajo. Las 3 cartas catalizadoras sirven para sintonizar con la identidad ya determinada del Target. Cuando pulsas <em>Submit</em>, el Target se voltea. Pones a prueba la <strong>clarividencia</strong>: percibir algo que ya existe pero está oculto.</p>
+
+    <h3 data-es="Recargar el Trigger" data-en="Reroll the Trigger">Recargar el Trigger</h3>
+    <p data-es="Si las 3 cartas catalizadoras no te resuenan, haz <strong>doble tap</strong> sobre ellas para sortear una nueva triada. Solo es posible <strong>antes</strong> de pulsar Submit — una vez registrada la predicción, el trigger queda fijado para mantener limpio el log estadístico."
+       data-en="If the 3 catalyst cards don't resonate, <strong>double tap</strong> them to draw a new triad. Only available <strong>before</strong> pressing Submit — once the prediction is logged, the trigger is locked to keep the statistical log clean.">Si las 3 cartas catalizadoras no te resuenan, haz <strong>doble tap</strong> sobre ellas para sortear una nueva triada. Solo es posible <strong>antes</strong> de pulsar Submit — una vez registrada la predicción, el trigger queda fijado para mantener limpio el log estadístico.</p>
 
     <h3 data-es="Aleatoriedad Cuántica" data-en="Quantum Randomness">Aleatoriedad Cuántica</h3>
     <p data-es="Las cartas se seleccionan con el mismo generador cuántico de Radio Arkana — bytes obtenidos de fluctuaciones del vacío. Si el pool se agota, se usa <em>Math.random()</em> como respaldo (el indicador en la barra superior pasa a ámbar)."
@@ -940,7 +957,7 @@ const els = {
   targetName: $('targetName'),
   btnSubmit: $('btnSubmit'), btnHelp: $('btnHelp'),
   hitsInline: $('hitsInline'), missesInline: $('missesInline'),
-  catalystRow: $('catalystRow'),
+  catalystRow: $('catalystRow'), catalystSection: $('catalystSection'),
   anaMode: $('anaMode'),
   anaHits: $('anaHits'), anaExpected: $('anaExpected'),
   anaDev: $('anaDev'), anaPval: $('anaPval'),
@@ -1225,6 +1242,21 @@ function drawCatalysts() {
   return out;
 }
 
+// Reroll del trigger a petición del usuario (doble tap sobre las cartas).
+// Solo permitido en PHASE.SHOWN — una vez bloqueada la ronda, el trigger
+// queda registrado y rerollearlo corrompería el log estadístico.
+// La predicción NO se resetea: el usuario puede ajustarla con las flechas
+// si las nuevas cartas le inspiran otra dirección.
+function rerollCatalysts() {
+  if (phase !== PHASE.SHOWN) return;
+  catalysts = drawCatalysts();
+  renderCatalysts();
+  // Flash sutil en las cartas
+  els.catalystRow.classList.add('reroll-flash');
+  setTimeout(() => els.catalystRow.classList.remove('reroll-flash'), 400);
+  showToast(currentLang === 'es' ? 'Nueva triada' : 'New triad');
+}
+
 function renderRound() {
   els.roundNum.textContent = currentRoundIndex() + 1;
   renderPredictionCard();
@@ -1506,6 +1538,23 @@ document.getElementById('btnTgt78').addEventListener('click',  () => setTargetN(
 
 els.arrL.addEventListener('click', () => nudgePrediction(-1));
 els.arrR.addEventListener('click', () => nudgePrediction(+1));
+
+// Doble-tap sobre el trigger para rerollear. Detector manual (más fiable
+// que dblclick en móviles, donde la latencia varía).
+(function initCatalystReroll() {
+  let lastTap = 0;
+  const TAP_WINDOW_MS = 380;
+  els.catalystRow.addEventListener('click', () => {
+    if (phase !== PHASE.SHOWN) return;
+    const now = Date.now();
+    if (now - lastTap < TAP_WINDOW_MS) {
+      lastTap = 0;
+      rerollCatalysts();
+    } else {
+      lastTap = now;
+    }
+  });
+})();
 els.predCard.addEventListener('click', openPicker);
 els.predCard.addEventListener('keydown', e => {
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPicker(); }
