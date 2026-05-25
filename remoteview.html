@@ -267,6 +267,49 @@
     .act-btn.primary:hover:not(:disabled) { background: rgba(230,48,48,0.12); }
     .act-btn.amber { border-color: rgba(206,157,6,0.55); color: var(--amber); }
 
+    /* ── SHARE BUTTON (visible solo en hit + REVEAL) ──────── */
+    .share-action {
+      display: none;
+      margin-top: 8px;
+      animation: shareFadeIn 0.5s cubic-bezier(.22,.9,.3,1);
+    }
+    .share-action.visible { display: block; }
+    .share-action .act-btn {
+      width: 100%;
+      border-color: rgba(34,197,94,0.55); color: var(--green);
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    }
+    .share-action .act-btn:hover { background: rgba(34,197,94,0.08); border-color: var(--green); }
+    .share-action .act-btn svg { flex-shrink: 0; }
+    @keyframes shareFadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── SHARE PREVIEW MODAL ──────────────────────────────── */
+    .share-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+      display: none; align-items: center; justify-content: center;
+      z-index: 200; padding: 16px; overflow-y: auto;
+    }
+    .share-modal.open { display: flex; }
+    .share-card {
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 16px; max-width: 420px; width: 100%;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .share-preview {
+      width: 100%; aspect-ratio: 1080 / 1350;
+      background: #000; border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .share-preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .share-preview .share-loading {
+      font-size: 9px; letter-spacing: 0.25em; color: var(--gray); text-transform: uppercase;
+    }
+    .share-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
     /* ── ROUND STATS ROW ────────────────────────────────── */
     .stats-inline {
       display: flex; justify-content: center; gap: 22px;
@@ -665,6 +708,19 @@
       <button class="act-btn" id="btnHelp" data-es="Help" data-en="Help">Help</button>
     </div>
 
+    <!-- share action (solo visible en hit + REVEAL) -->
+    <div class="share-action" id="shareAction">
+      <button class="act-btn" id="btnShare"
+              title="Generar imagen del acierto para guardar o compartir">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <path d="M8.59 13.51l6.83 3.98"/><path d="M15.41 6.51l-6.82 3.98"/>
+        </svg>
+        <span data-es="Compartir acierto" data-en="Share hit">Compartir acierto</span>
+      </button>
+    </div>
+
     <!-- inline stats -->
     <div class="stats-inline">
       <span><span data-es="Hits" data-en="Hits">Hits</span>: <span class="hit-num" id="hitsInline">0</span></span>
@@ -739,6 +795,21 @@
       <button class="picker-close" id="pickerClose" aria-label="Cerrar">×</button>
     </div>
     <div class="picker-grid" id="pickerGrid"></div>
+  </div>
+</div>
+
+<!-- ── SHARE PREVIEW MODAL ───────────────────────────────── -->
+<div class="share-modal" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+  <div class="share-card">
+    <h3 id="shareTitle" style="font-family: var(--font-body); font-size: 11px; letter-spacing: 0.3em; color: var(--green); text-align: center; text-transform: uppercase;"
+        data-es="Vista previa · acierto" data-en="Preview · hit">Vista previa · acierto</h3>
+    <div class="share-preview" id="sharePreview">
+      <span class="share-loading" data-es="Generando…" data-en="Generating…">Generando…</span>
+    </div>
+    <div class="share-actions">
+      <button class="act-btn primary" id="shareSave" data-es="Guardar" data-en="Save">Guardar</button>
+      <button class="act-btn" id="shareDiscard" data-es="Descartar" data-en="Discard">Descartar</button>
+    </div>
   </div>
 </div>
 
@@ -956,6 +1027,9 @@ const els = {
   targetFront: $('targetFront'), targetEmpty: $('targetEmpty'),
   targetName: $('targetName'),
   btnSubmit: $('btnSubmit'), btnHelp: $('btnHelp'),
+  shareAction: $('shareAction'), btnShare: $('btnShare'),
+  shareModal: $('shareModal'), sharePreview: $('sharePreview'),
+  shareSave: $('shareSave'), shareDiscard: $('shareDiscard'),
   hitsInline: $('hitsInline'), missesInline: $('missesInline'),
   catalystRow: $('catalystRow'), catalystSection: $('catalystSection'),
   anaMode: $('anaMode'),
@@ -1214,6 +1288,7 @@ function roundStart() {
   advanceTimer = null;
   setSubmitMode('submit');
   els.board.classList.remove('locked');
+  els.shareAction.classList.remove('visible');
 
   // Generate catalysts: 3 distinct indices drawn from the TRIGGER pool (triggerN).
   // Target is drawn from the TARGET pool (targetN) — these are independent pools.
@@ -1320,6 +1395,9 @@ function onSubmit() {
     showToast(hit ? (currentLang === 'es' ? '¡ACIERTO!' : 'HIT!')
                   : (currentLang === 'es' ? 'FALLO' : 'MISS'), hit ? 'hit' : 'miss');
     if (navigator.vibrate) navigator.vibrate(hit ? [40, 25, 40, 25, 40] : 20);
+
+    // Show share button on hit (hidden again automatically in roundStart).
+    if (hit) els.shareAction.classList.add('visible');
 
     // Switch Submit → Next button. Manual click is always available so the
     // user can advance immediately even when Auto is ON.
@@ -1596,7 +1674,7 @@ function applyAutoState() {
 
 // keyboard shortcuts: arrows + enter
 document.addEventListener('keydown', e => {
-  if (els.pickerModal.classList.contains('open') || els.helpModal.classList.contains('open')) return;
+  if (els.pickerModal.classList.contains('open') || els.helpModal.classList.contains('open') || els.shareModal.classList.contains('open')) return;
   if (e.key === 'ArrowLeft')  { e.preventDefault(); nudgePrediction(-1); }
   if (e.key === 'ArrowRight') { e.preventDefault(); nudgePrediction(+1); }
   if (e.key === 'Enter' && !els.btnSubmit.disabled) {
@@ -1659,6 +1737,290 @@ document.addEventListener('keydown', e => {
     if (document.hidden) audioCtx.suspend();
     else audioCtx.resume();
   });
+})();
+
+// ── SHARE / HIT IMAGE ────────────────────────────────────
+// Genera una imagen 1080×1350 con las 5 cartas del round, modo, stats,
+// handle y timestamp. El usuario puede guardarla (descarga al dispositivo)
+// o descartarla. Sin flujo automático a redes sociales — solo descarga.
+(function initShareModule() {
+  let shareBlobUrl = null;        // URL temporal de la imagen generada
+  let shareFilename = null;       // nombre del archivo al guardar
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('img load: ' + src));
+      img.src = src;
+    });
+  }
+
+  function roundRectPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  // Dibuja una carta tipo polaroid: fondo oscuro + imagen cover-fit clipeada + borde rojo
+  function drawCard(ctx, img, x, y, w, h, accent) {
+    const r = 8;
+    accent = accent || 'rgba(230,48,48,0.45)';
+
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = 14;
+    ctx.shadowOffsetY = 5;
+    ctx.fillStyle = '#0d0d0d';
+    roundRectPath(ctx, x, y, w, h, r);
+    ctx.fill();
+    ctx.restore();
+
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.save();
+      roundRectPath(ctx, x + 4, y + 4, w - 8, h - 8, r - 2);
+      ctx.clip();
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+      const targetW = w - 8, targetH = h - 8;
+      const scale = Math.max(targetW / iw, targetH / ih);
+      const dw = iw * scale, dh = ih * scale;
+      const dx = x + 4 + (targetW - dw) / 2;
+      const dy = y + 4 + (targetH - dh) / 2;
+      ctx.drawImage(img, dx, dy, dw, dh);
+      ctx.restore();
+    }
+
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 1.2;
+    roundRectPath(ctx, x, y, w, h, r);
+    ctx.stroke();
+  }
+
+  function buildSnapshot() {
+    const cur = modeLog(currentMode);
+    const n = cur.length;
+    const hits = cur.filter(r => r.hit).length;
+    const p0 = pHit();
+    const expected = n * p0;
+    const dev = hits - expected;
+    const pval = n > 0 ? binomTwoSidedPval(n, hits, p0) : null;
+    const pvalStr = pval === null ? '—'
+      : pval < 0.001 ? pval.toExponential(2) : pval.toFixed(3);
+
+    const lastLog = log[log.length - 1];
+    const roundNum = lastLog ? lastLog.round : currentRoundIndex();
+    const now = new Date(lastLog ? lastLog.ts : Date.now());
+    const pad = v => String(v).padStart(2, '0');
+    const timestamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} · ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+    const isES = currentLang === 'es';
+    return {
+      isES,
+      modeLabel: currentMode === 'precog' ? 'PRECOG' : 'CLAIRV',
+      config: `${currentMode === 'precog' ? 'PRECOG' : 'CLAIRV'} · T${triggerN} · G${targetN}`,
+      roundLabel: `${isES ? 'ROUND' : 'ROUND'} ${roundNum} · HIT`,
+      statsLine1: `${hits} ${isES ? 'HITS' : 'HITS'} · ${n} ${isES ? 'ROUNDS' : 'ROUNDS'} · p = ${pvalStr}`,
+      statsLine2: `${isES ? 'ESPERADO' : 'EXPECTED'} ${expected.toFixed(2)} · ${isES ? 'DESVIACIÓN' : 'DEVIATION'} ${(dev >= 0 ? '+' : '') + dev.toFixed(2)}`,
+      timestamp,
+      handle: (localStorage.getItem('arkana-handle') || '').trim(),
+      catalysts: catalysts.slice(),
+      predictionIdx,
+      targetIdx,
+      labels: {
+        trigger: isES ? 'TRIGGER · CATALIZADOR' : 'TRIGGER · CATALYST',
+        prediction: isES ? 'PREDICCIÓN' : 'PREDICTION',
+        target: 'TARGET'
+      }
+    };
+  }
+
+  async function composeShareCanvas(snap) {
+    const W = 1080, H = 1350;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, W, H);
+
+    // Subtle vignette
+    const grad = ctx.createRadialGradient(W/2, H*0.42, 80, W/2, H*0.42, 850);
+    grad.addColorStop(0, 'rgba(230,48,48,0.07)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Outer frame
+    ctx.strokeStyle = 'rgba(230,48,48,0.35)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(22, 22, W - 44, H - 44);
+
+    // ── Header ────────────────────────────────────────────
+    ctx.fillStyle = '#e63030';
+    ctx.font = '700 22px "Space Mono", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('RADIO ARKANA · REMOTE VIEW', 60, 80);
+
+    if (snap.handle) {
+      ctx.fillStyle = '#ce9d06';
+      ctx.font = '700 22px "Space Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText('@' + snap.handle, W - 60, 80);
+    }
+
+    ctx.strokeStyle = 'rgba(230,48,48,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(60, 100); ctx.lineTo(W - 60, 100); ctx.stroke();
+
+    // ── Config + Round/HIT ────────────────────────────────
+    ctx.fillStyle = 'rgba(240,236,228,0.8)';
+    ctx.font = '600 22px "Space Mono", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(snap.config, 60, 140);
+
+    ctx.fillStyle = '#22c55e';
+    ctx.font = '700 26px "Space Mono", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(snap.roundLabel, W - 60, 140);
+
+    // ── Catalyst label ────────────────────────────────────
+    ctx.fillStyle = '#e63030';
+    ctx.font = '700 16px "Space Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(snap.labels.trigger, W/2, 195);
+
+    // ── Catalyst cards (3) ────────────────────────────────
+    const catW = 170, catH = Math.round(catW * 390 / 205);   // 323
+    const catGap = 50;
+    const catTotalW = catW * 3 + catGap * 2;                 // 610
+    const catStartX = (W - catTotalW) / 2;                   // 235
+    const catY = 215;
+
+    const catImages = await Promise.all(snap.catalysts.map(idx => loadImage(fullPath(idx))));
+    catImages.forEach((img, i) => {
+      drawCard(ctx, img, catStartX + i * (catW + catGap), catY, catW, catH);
+    });
+
+    // ── Prediction/Target labels ──────────────────────────
+    const resLabelY = catY + catH + 60;     // 598
+    ctx.fillStyle = 'rgba(240,236,228,0.7)';
+    ctx.font = '700 18px "Space Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(snap.labels.prediction, W * 0.275, resLabelY);
+    ctx.fillText(snap.labels.target,     W * 0.725, resLabelY);
+
+    // Equality sign between
+    ctx.fillStyle = '#22c55e';
+    ctx.font = '900 44px "Space Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('=', W/2, resLabelY + 6);
+
+    // ── Prediction + Target cards ─────────────────────────
+    const resW = 260, resH = Math.round(resW * 390 / 205);   // 494
+    const resGap = 80;
+    const resTotalW = resW * 2 + resGap;                     // 600
+    const resStartX = (W - resTotalW) / 2;                   // 240
+    const resCardY = resLabelY + 22;                         // 620
+
+    const [predImg, targetImg] = await Promise.all([
+      loadImage(fullPath(snap.predictionIdx)),
+      loadImage(fullPath(snap.targetIdx))
+    ]);
+    drawCard(ctx, predImg,   resStartX,                 resCardY, resW, resH, 'rgba(34,197,94,0.7)');
+    drawCard(ctx, targetImg, resStartX + resW + resGap, resCardY, resW, resH, 'rgba(34,197,94,0.7)');
+
+    // ── Stats ─────────────────────────────────────────────
+    const statsY = resCardY + resH + 56;    // 1170
+    ctx.fillStyle = '#22c55e';
+    ctx.font = '700 22px "Space Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(snap.statsLine1, W/2, statsY);
+
+    ctx.fillStyle = 'rgba(240,236,228,0.55)';
+    ctx.font = '500 16px "Space Mono", monospace';
+    ctx.fillText(snap.statsLine2, W/2, statsY + 30);
+
+    // ── Footer ────────────────────────────────────────────
+    ctx.strokeStyle = 'rgba(230,48,48,0.25)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(60, H - 80); ctx.lineTo(W - 60, H - 80); ctx.stroke();
+
+    ctx.fillStyle = 'rgba(240,236,228,0.6)';
+    ctx.font = '500 16px "Space Mono", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(snap.timestamp, 60, H - 50);
+
+    ctx.fillStyle = '#e63030';
+    ctx.font = '700 16px "Space Mono", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('radioarkana.com', W - 60, H - 50);
+
+    return canvas;
+  }
+
+  function clearShareUrl() {
+    if (shareBlobUrl) { URL.revokeObjectURL(shareBlobUrl); shareBlobUrl = null; }
+    shareFilename = null;
+  }
+
+  async function openShareModal() {
+    // Pausar auto-advance: si el usuario está revisando la captura,
+    // no queremos que la ronda cambie por debajo.
+    clearTimeout(advanceTimer); advanceTimer = null;
+    // Mostrar modal con placeholder mientras generamos
+    els.shareModal.classList.add('open');
+    els.sharePreview.innerHTML = `<span class="share-loading">${currentLang === 'es' ? 'Generando…' : 'Generating…'}</span>`;
+    clearShareUrl();
+
+    try {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      const snap = buildSnapshot();
+      const canvas = await composeShareCanvas(snap);
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+      if (!blob) throw new Error('toBlob returned null');
+      shareBlobUrl = URL.createObjectURL(blob);
+      shareFilename = `arkana-hit-${snap.modeLabel.toLowerCase()}-${Date.now()}.png`;
+      const img = new Image();
+      img.src = shareBlobUrl;
+      img.alt = currentLang === 'es' ? 'Vista previa del acierto' : 'Hit preview';
+      els.sharePreview.innerHTML = '';
+      els.sharePreview.appendChild(img);
+    } catch (e) {
+      els.sharePreview.innerHTML = `<span class="share-loading">${currentLang === 'es' ? 'Error al generar' : 'Generation error'}</span>`;
+    }
+  }
+
+  function closeShareModal() {
+    els.shareModal.classList.remove('open');
+    clearShareUrl();
+    els.sharePreview.innerHTML = '';
+  }
+
+  function saveShareImage() {
+    if (!shareBlobUrl) return;
+    const a = document.createElement('a');
+    a.href = shareBlobUrl;
+    a.download = shareFilename || `arkana-hit-${Date.now()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    closeShareModal();
+  }
+
+  // Wiring
+  els.btnShare.addEventListener('click', openShareModal);
+  els.shareSave.addEventListener('click', saveShareImage);
+  els.shareDiscard.addEventListener('click', closeShareModal);
+  els.shareModal.addEventListener('click', e => { if (e.target === els.shareModal) closeShareModal(); });
 })();
 
 // ── INIT ─────────────────────────────────────────────────
