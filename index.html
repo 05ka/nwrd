@@ -499,6 +499,12 @@
       <svg id="playIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       <span id="playLabel">Play</span>
     </button>
+    <div class="handle-row" id="handleRow" title="Tu handle firmará las fotos de Arkana Camera">
+      <span style="color:var(--red); font-size:11px; flex-shrink:0;">@</span>
+      <input class="handle-input" id="handleInput" type="text" placeholder="tu_usuario"
+             maxlength="32" autocomplete="off" spellcheck="false" aria-label="Tu nombre de usuario">
+    </div>
+    <div class="handle-hint" id="handleHint">Tu nombre firmará las fotos de Arkana Camera</div>
     <div class="volume-row" id="volRow">
       <span class="vol-label">VOL</span>
       <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" oninput="updateVolume(this.value)">
@@ -848,6 +854,7 @@
     wf.classList.add('playing');
     document.getElementById('volRow').classList.add('visible');
     document.getElementById('controlsRow').classList.add('visible');
+    document.getElementById('handleRow').classList.add('hidden');
     playLabel.textContent = 'Stop';
     playIcon.innerHTML    = '<path d="M6 6h12v12H6z"/>';
     document.title = '🔴 En directo · Radio Arkana';
@@ -879,6 +886,7 @@
     document.title = 'Radio Arkana · Tarot Underground · Málaga';
     setRepLabels(null, null, false, false);
     document.getElementById('controlsRow').classList.remove('visible');
+    document.getElementById('handleRow').classList.remove('hidden');
     document.getElementById('btnCamera').classList.remove('visible');
     stopListenersCounter();
     stopMarqueePolling();
@@ -1537,8 +1545,26 @@
   document.getElementById('previewExit').addEventListener('click',exitCamera);
   setInterval(()=>{if(document.getElementById('cameraModal').classList.contains('active'))updateCameraHUD();},1000);
 
-  // El handle (@usuario) se gestiona ahora exclusivamente desde /camera.html
-  // donde tiene contexto real. Se sigue compartiendo vía localStorage.arkana-handle.
+  // ── HANDLE (@usuario) ──────────────────────────────────────────────────────
+  // Campo visible solo en estado parado (antes de Play). Compartido con
+  // /camera.html vía localStorage.arkana-handle — saneamiento idéntico:
+  // se descartan @ y espacios, máximo 32 caracteres. Si el usuario edita
+  // el handle desde otra pestaña, el evento 'storage' refleja el cambio.
+  (function initHandle() {
+    const input = document.getElementById('handleInput');
+    if (!input) return;
+    input.value = (localStorage.getItem('arkana-handle') || '').trim();
+    input.addEventListener('input', e => {
+      const val = e.target.value.replace(/[@\s]/g, '').slice(0, 32);
+      e.target.value = val;
+      localStorage.setItem('arkana-handle', val);
+    });
+    window.addEventListener('storage', e => {
+      if (e.key === 'arkana-handle' && document.activeElement !== input) {
+        input.value = (e.newValue || '').trim();
+      }
+    });
+  })();
 
   // ── INSTANT SHOT ───────────────────────────────────────────────────────────
   let instantMode=localStorage.getItem('arkana-instant')==='1';
