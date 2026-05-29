@@ -38,10 +38,16 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { height: 100%; }
+    html { height: 100%; background: var(--bg); }
+
+    /* Fixed background layer — solid var(--bg) by default, random gradient when enabled. */
+    #bgLayer { position: fixed; inset: 0; z-index: -1; background: var(--bg); transition: background 0.6s ease; }
+    /* Gradient mode: surfaces turn translucent so the field skins through, keeping text legible. */
+    html[data-bg="gradient"] .topbar,
+    html[data-bg="gradient"] .card { background: rgba(15,15,15,0.3); }
 
     body {
-      background: var(--bg);
+      background: transparent;
       color: var(--white);
       font-family: var(--font-body);
       min-height: 100dvh;
@@ -444,6 +450,7 @@
   </style>
 </head>
 <body>
+<div id="bgLayer"></div>
 
 <div class="shell">
   <div class="tape"></div>
@@ -453,7 +460,10 @@
       <span id="onAirBadge" class="on-air-badge">ON AIR</span>
       <span class="topbar-station">Radio Arkana · Cabina</span>
     </div>
-    <span class="topbar-right">LOCUTOR</span>
+    <span class="topbar-right" style="display:flex;align-items:center;gap:10px;">
+      <button id="btnBg" title="Fondo degradado aleatorio (toca para activar / cambiar)" aria-pressed="false" style="background:transparent;border:none;cursor:pointer;padding:2px;font-size:13px;line-height:1;color:rgba(255,255,255,0.3);transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.7)'" onmouseout="if(this.getAttribute('aria-pressed')!=='true')this.style.color='rgba(255,255,255,0.3)'">◐</button>
+      LOCUTOR
+    </span>
   </div>
 
   <div class="card">
@@ -871,6 +881,43 @@
   }
 
   console.log('✅ Radio Arkana · Cabina iniciada');
+
+  // ── FONDO DEGRADADO ALEATORIO (◐) ─────────────────────────────────────────────
+  (function bgGradientFeature() {
+    const BG_KEY = 'arkana-loc-bg';
+    const PALETTE = [
+      '#080808','#101010','#161616','#1d1d1d','#242424',
+      '#0d1b2a','#0e2238','#13243f','#1b2a4a','#10243a',
+      '#1a1033','#241447','#2c1a4e','#1d1430','#321d5a'
+    ];
+    const qi = n => (window.getQuantumIndex ? window.getQuantumIndex(n) : Math.floor(Math.random() * n));
+    let gradient = '';
+    const pick = () => PALETTE[qi(PALETTE.length)];
+    function gen() {
+      const angle = qi(24) * 15;
+      const c1 = pick();
+      let c2 = pick(), g = 0;
+      while (c2 === c1 && g++ < 6) c2 = pick();
+      if (qi(10) < 4) return `linear-gradient(${angle}deg, ${c1} 0%, ${pick()} 52%, ${c2} 100%)`;
+      return `linear-gradient(${angle}deg, ${c1} 0%, ${c2} 100%)`;
+    }
+    function paint(v) { const l = document.getElementById('bgLayer'); if (l) l.style.background = v || 'var(--bg)'; }
+    function set(on, regen) {
+      document.documentElement.dataset.bg = on ? 'gradient' : 'solid';
+      const btn = document.getElementById('btnBg');
+      if (btn) {
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.style.color = on ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)';
+      }
+      if (on) { if (regen || !gradient) gradient = gen(); paint(gradient); }
+      else paint('');
+      localStorage.setItem(BG_KEY, on ? 'gradient' : 'solid');
+    }
+    document.getElementById('btnBg')?.addEventListener('click', () => {
+      set(document.documentElement.dataset.bg !== 'gradient', true);
+    });
+    set(localStorage.getItem(BG_KEY) === 'gradient', true);
+  })();
 </script>
 </body>
 </html>

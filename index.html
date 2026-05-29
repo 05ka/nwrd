@@ -44,7 +44,7 @@
   <style>
     :root {
       --bg: #0a0a0a; --surface: #111111; --border: #1e1e1e;
-      --red: #e63030; --red-dim: #7a1a1a; --white: #f0ece4; --gray: #555;
+      --red: #e63030; --red-dim: #7a1a1a; --white: #f0ece4; --gray: #8a8a8a;
       --font-head: 'Bebas Neue', sans-serif; --font-body: 'Space Mono', monospace;
     }
 
@@ -63,8 +63,18 @@
     [data-theme="light"] .playing .bar.tts-mode { background: linear-gradient(to top, #8a3030, #c42020 55%, #d04040); }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--white); font-family: var(--font-body); min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; overflow-y: auto; transition: background 0.3s, color 0.3s; }
+    html { background: var(--bg); }
+    body { background: transparent; color: var(--white); font-family: var(--font-body); min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; overflow-y: auto; transition: color 0.3s; }
     body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 100; opacity: 0.4; }
+    /* Fixed background layer — solid var(--bg) by default, random gradient when enabled. */
+    #bgLayer { position: fixed; inset: 0; z-index: -1; background: var(--bg); transition: background 0.6s ease; }
+    /* Gradient mode: card turns translucent so the field skins through, keeping text legible. */
+    html[data-bg="gradient"] .card { background: rgba(17,17,17,0.3); }
+    [data-theme="light"][data-bg="gradient"] .card { background: rgba(232,227,218,0.55); }
+    /* Light gradient is too close to #8a8a8a in luminance; darken functional gray to keep 4.5:1. */
+    html[data-theme="light"][data-bg="gradient"] { --gray: #555; }
+    html[data-theme="light"][data-bg="gradient"] .footer-note { color: #555; }
+    html[data-theme="light"][data-bg="gradient"] .footer-note a { color: #555; }
     .wrap { width: min(460px, 92vw); display: flex; flex-direction: column; padding: 16px 0; }
     .header { background: var(--red); padding: 6px 20px; display: flex; align-items: center; justify-content: space-between; }
     .header-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(0,0,0,0.6); }
@@ -105,8 +115,8 @@
     input[type=range] { -webkit-appearance: none; flex: 1; height: 2px; background: var(--border); outline: none; }
     input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; background: var(--white); border-radius: 50%; cursor: pointer; }
     .footer { border: 1px solid var(--border); border-top: none; padding: 12px 32px; padding-bottom: max(12px, env(safe-area-inset-bottom)); display: flex; justify-content: space-between; flex-shrink: 0; transition: border-color 0.3s; }
-    .footer-note { font-size: 9px; text-transform: uppercase; color: #333; }
-    .footer-note a { color: #444; text-decoration: none; transition: color 0.2s; }
+    .footer-note { font-size: 9px; text-transform: uppercase; color: #8a8a8a; }
+    .footer-note a { color: #9a9a9a; text-decoration: none; transition: color 0.2s; }
     .footer-note a:hover { color: var(--red); }
     [data-theme="light"] .footer-note { color: var(--gray); }
     [data-theme="light"] .footer-note a { color: var(--gray); }
@@ -139,10 +149,10 @@
     #btnCamera.visible { display: flex; }
 
     /* ── KNOB ────────────────────────────────────────────────────────────────── */
-    .knob-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: ns-resize; user-select: none; -webkit-user-select: none; position: relative; padding: 14px 0; }
+    .knob-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: ns-resize; user-select: none; -webkit-user-select: none; position: relative; padding: 14px 0 24px; }
     .knob-arrow-up, .knob-arrow-down { position: absolute; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--gray); opacity: 0.3; pointer-events: none; user-select: none; transition: opacity 0.25s, color 0.2s; line-height: 1; }
     .knob-arrow-up { top: 1px; }
-    .knob-arrow-down { bottom: 1px; }
+    .knob-arrow-down { bottom: 11px; }
     .knob-wrap:hover .knob-arrow-up, .knob-wrap:hover .knob-arrow-down { opacity: 0.75; color: var(--white); }
     .knob-wrap.dragging .knob-arrow-up, .knob-wrap.dragging .knob-arrow-down { opacity: 1; color: var(--red); }
     .knob { width: 26px; height: 26px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); position: relative; transition: border-color 0.2s; }
@@ -154,6 +164,7 @@
     .knob-wrap:hover .knob-val, .knob-wrap.dragging .knob-val { color: var(--white); }
     .knob-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; color: var(--gray); transition: color 0.2s; display: flex; align-items: center; justify-content: center; }
     .knob-wrap:hover .knob-icon, .knob-wrap.dragging .knob-icon { color: var(--white); }
+    .knob-name { font-family: var(--font-body); font-size: 7px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray); margin-top: 3px; line-height: 1; text-align: center; }
 
     /* ── BANNERS ─────────────────────────────────────────────────────────────── */
     #offlineBanner { position: fixed; top: 0; left: 0; right: 0; background: #1a1a00; border-bottom: 1px solid #5a5000; color: #ce9d06; font-family: var(--font-body); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; text-align: center; padding: 7px 16px; z-index: 200; transform: translateY(-100%); transition: transform 0.3s ease; }
@@ -223,7 +234,7 @@
     #btnCamera.instant-mode::before { border-color: var(--red); animation: instant-ring 1.5s infinite; }
     @keyframes instant-ring { 0%,100%{opacity:1;}50%{opacity:0.4;} }
 
-    @media (max-width: 480px) { .wrap { width: 100%; padding: 8px 4px; } .card { padding: 24px 16px 20px; } .controls-row { flex-wrap: wrap; gap: 12px; } .controls-left { flex-wrap: wrap; justify-content: center; width: 100%; gap: 4px; } .knob-wrap { padding: 10px 0; min-width: 50px; } .lang-toggle { margin-left: 0; } .controls-right { position: static; width: 100%; justify-content: center; gap: 8px; } .layer-btn { padding: 8px 12px; } .knob { width: 22px; height: 22px; } .knob-val { font-size: 7px; } .knob-arrow-up, .knob-arrow-down { font-size: 8px; } }
+    @media (max-width: 480px) { .wrap { width: 100%; padding: 8px 4px; } .card { padding: 24px 16px 20px; } .controls-row { flex-wrap: wrap; gap: 12px; } .controls-left { flex-wrap: wrap; justify-content: center; width: 100%; gap: 4px; } .knob-wrap { padding: 10px 0 22px; min-width: 50px; } .lang-toggle { margin-left: 0; } .controls-right { position: static; width: 100%; justify-content: center; gap: 8px; } .layer-btn { padding: 8px 12px; } .knob { width: 22px; height: 22px; } .knob-val { font-size: 7px; } .knob-arrow-up, .knob-arrow-down { font-size: 8px; } }
     @media (max-width: 360px) { .controls-left { gap: 2px; } .knob-wrap { min-width: 44px; } .lang-opt { padding: 4px 6px; font-size: 8px; } }
     #camToast { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 100px); left: 50%; transform: translateX(-50%) translateY(12px); background: #1a0a0a; border: 1px solid #7a1a1a; color: #e63030; font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 10px 20px; z-index: 700; opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; white-space: nowrap; }
     #camToast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -378,9 +389,38 @@
     @media (max-width: 480px) {
       .micro-trio { margin-top: -23px; }
     }
+
+    /* ── ACCESIBILIDAD · movimiento reducido ─────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+      .marquee-wrap { overflow: visible; }
+      .marquee-text { animation: none !important; transform: none !important; white-space: normal; text-align: center; }
+    }
+
+    /* ── MODALES (donar / créditos) ─────────────────────────────────────────── */
+    .ark-modal { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.88); display: none; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+    .ark-modal.active { display: flex; }
+    .ark-card { background: var(--surface); border: 1px solid var(--border); max-width: 440px; width: 100%; padding: 22px 22px 20px; position: relative; }
+    .ark-card h2 { font-family: var(--font-head); font-size: 26px; letter-spacing: 0.04em; color: var(--white); margin: 0 0 14px; padding-right: 28px; }
+    .ark-card p { font-family: var(--font-body); font-size: 12px; line-height: 1.6; color: var(--gray); margin: 0 0 12px; }
+    .ark-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: var(--gray); font-size: 22px; line-height: 1; cursor: pointer; padding: 4px; }
+    .ark-close:hover { color: var(--white); }
+    .ark-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+    .ark-btn { flex: 1; min-width: 120px; font-family: var(--font-body); font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 14px; background: var(--red); color: var(--white); border: 1px solid var(--red); cursor: pointer; transition: background 0.2s, color 0.2s; }
+    .ark-btn:hover { background: transparent; color: var(--red); }
+    .ark-note { font-size: 10px; color: var(--gray); margin-top: 14px; text-align: center; font-style: italic; }
+    .ark-credit-sec { margin-bottom: 14px; }
+    .ark-credit-sec h3 { font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--white); margin: 0 0 4px; }
+    .ark-credit-sec p { font-size: 11px; line-height: 1.5; margin: 0; }
+    .ark-card a { color: var(--red); }
   </style>
 </head>
 <body>
+<div id="bgLayer"></div>
 
 <div id="offlineBanner">⚡ Sin conexión · Modo local activo · El streaming se reanudará al reconectar</div>
 
@@ -468,6 +508,7 @@
     <span class="freq">7.50 MHz · Málaga</span>
     <span style="display:flex;align-items:center;gap:2px;">
       <span id="qrngIndicator" title="Aleatoriedad local · Math.random()" style="font-family:var(--font-body);font-size:11px;color:rgba(0,0,0,0.3);letter-spacing:0;padding:4px 4px;cursor:default;user-select:none;transition:color 0.4s;">⟳</span>
+      <button id="btnBg" title="Fondo degradado aleatorio (toca para activar / cambiar)" aria-pressed="false" style="background:transparent;border:none;cursor:pointer;padding:4px 4px;font-size:13px;line-height:1;color:rgba(0,0,0,0.45);transition:color 0.2s;" onmouseover="this.style.color='rgba(0,0,0,0.75)'" onmouseout="if(this.getAttribute('aria-pressed')!=='true')this.style.color='rgba(0,0,0,0.45)'">◐</button>
       <button id="btnTheme" onclick="toggleTheme()" title="Tema claro/oscuro" aria-pressed="false" style="background:transparent;border:none;cursor:pointer;padding:4px 0 4px 8px;display:flex;align-items:center;color:rgba(0,0,0,0.45);transition:color 0.2s;" onmouseover="this.style.color='rgba(0,0,0,0.75)'" onmouseout="this.style.color='rgba(0,0,0,0.45)'">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="5"/>
@@ -530,6 +571,7 @@
           </div>
           <span class="knob-val" id="noiseKnobVal">OFF</span>
           <div class="knob-arrow-down">v</div>
+          <div class="knob-name">Ruido</div>
         </div>
         <div class="knob-wrap" id="binauralKnob" title="Frecuencia binaural">
           <div class="knob-arrow-up">^</div>
@@ -539,6 +581,7 @@
           </div>
           <span class="knob-val" id="binauralKnobVal">OFF</span>
           <div class="knob-arrow-down">v</div>
+          <div class="knob-name">Binaural</div>
         </div>
         <span class="ctrl-sep"></span>
         <div class="knob-wrap" id="pauseKnob" title="Pausa entre frases">
@@ -549,6 +592,7 @@
           </div>
           <span class="knob-val" id="knobVal">20s</span>
           <div class="knob-arrow-down">v</div>
+          <div class="knob-name">Pausa</div>
         </div>
         <div class="knob-wrap" id="repsKnob" title="Repeticiones por serie">
           <div class="knob-arrow-up">^</div>
@@ -558,6 +602,7 @@
           </div>
           <span class="knob-val" id="repsKnobVal">×7</span>
           <div class="knob-arrow-down">v</div>
+          <div class="knob-name">Serie</div>
         </div>
         <span class="ctrl-sep"></span>
         <div class="lang-toggle" role="group" aria-label="Idioma TTS">
@@ -591,12 +636,53 @@
   </div>
   <div class="footer">
     <span class="footer-note">© 2026 by @mirage_a_trois</span>
-    <div style="display:flex;gap:20px;">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;">
       <span class="footer-note"><a href="https://mirageatrois.substack.com/p/el-fenomeno-de-induccion-imaginativa" target="_blank">wtf?</a></span>
       <span class="footer-note"><a href="/guia-arkana.html" target="_blank">guía</a></span>
       <span class="footer-note"><a href="/comunidad.html" target="_blank">comunidad</a></span>
       <span class="footer-note"><a href="/remoteview.html">dojo</a></span>
+      <span class="footer-note"><a href="#" id="footDonate">donar</a></span>
+      <span class="footer-note"><a href="#" id="footCredits">créditos</a></span>
     </div>
+  </div>
+</div>
+
+<!-- ── MODAL DONAR ──────────────────────────────────────────────────────────── -->
+<div class="ark-modal" id="donateModal" role="dialog" aria-modal="true" aria-labelledby="donateTitle">
+  <div class="ark-card">
+    <button class="ark-close" id="donateClose" aria-label="Cerrar">×</button>
+    <h2 id="donateTitle">Apoya el experimento</h2>
+    <p>Radio Arkana es un experimento independiente: sin publicidad, sin cuotas, sin algoritmos que te vigilen. Si la señal te acompaña, puedes sostener el campo con una donación.</p>
+    <div class="ark-actions">
+      <button class="ark-btn" id="donatePaypal">PayPal</button>
+      <button class="ark-btn" id="donateStripe">Stripe</button>
+    </div>
+    <p class="ark-note">Gracias · el acto del don sostiene el campo</p>
+  </div>
+</div>
+
+<!-- ── MODAL CRÉDITOS ───────────────────────────────────────────────────────── -->
+<div class="ark-modal" id="creditsModal" role="dialog" aria-modal="true" aria-labelledby="creditsTitle">
+  <div class="ark-card">
+    <button class="ark-close" id="creditsClose" aria-label="Cerrar">×</button>
+    <h2 id="creditsTitle">Créditos &amp; licencias</h2>
+    <div class="ark-credit-sec">
+      <h3>Tarot de Marsella</h3>
+      <p>CBD Tarot de Dr. Yoav Ben-Dov · <a href="https://www.cbdtarot.com" target="_blank">cbdtarot.com</a> · CC BY-NC-SA 3.0</p>
+    </div>
+    <div class="ark-credit-sec">
+      <h3>Rider-Waite-Smith</h3>
+      <p>Pamela Colman Smith &amp; A.E. Waite (1909) · dominio público</p>
+    </div>
+    <div class="ark-credit-sec">
+      <h3>Aleatoriedad cuántica</h3>
+      <p>ANU Quantum Random Numbers Server</p>
+    </div>
+    <div class="ark-credit-sec">
+      <h3>App &amp; desarrollo</h3>
+      <p><a href="https://radioarkana.com" target="_blank">radioarkana.com</a></p>
+    </div>
+    <p class="ark-note">Experimento de entretenimiento. No constituye consejo médico, financiero ni psicológico.</p>
   </div>
 </div>
 
@@ -839,6 +925,7 @@
     const btn = document.getElementById('btnTheme');
     btn.classList.toggle('active', newTheme === 'light');
     btn.setAttribute('aria-pressed', newTheme === 'light');
+    window.__arkanaBgOnThemeChange?.();
   }
   const savedTheme = localStorage.getItem('arkana-theme');
   if (savedTheme) {
@@ -1954,8 +2041,9 @@
     function dismissHint(key, el) {
       el.classList.remove('visible');
       clearTimeout(_hideTimers[key]);
-      // Si ambos se han enseñado, no volver a mostrar nunca más.
-      if (_shown.marquee && _shown.deep) {
+      // Persistir sólo cuando el usuario ejecuta el gesto principal (la tirada).
+      // Si nunca lo toca, las pistas reaparecen la próxima sesión (descubrible).
+      if (key === 'marquee') {
         localStorage.setItem('arkana-hints-seen', '1');
       }
     }
@@ -1971,17 +2059,17 @@
       dismissHint('deep', hintDeepListen);
     }, { once: true });
 
-    // Activador: cuando el usuario entre por primera vez a TTS — momento en
-    // que la app ya ha empezado a "hablar" y tiene sentido revelar los gestos.
-    const _origStartTTS = window.startTTS || null;
+    // La tirada es la función principal: revelar su pista al cargar, sin
+    // depender de que el visitante pulse Play (antes sólo aparecía tras TTS).
+    setTimeout(() => showHint('marquee', hintMarquee), 3500);
+
+    // La escucha profunda sólo tiene sentido con audio sonando: su pista se
+    // revela al entrar por primera vez en TTS.
     let _firstTTS = true;
     function _onFirstTTS() {
       if (!_firstTTS) return;
       _firstTTS = false;
-      setTimeout(() => showHint('marquee', hintMarquee), 4000);
-      setTimeout(() => showHint('deep',    hintDeepListen), 14000);
-      // Tras 25 s ya hemos mostrado todo; persistimos.
-      setTimeout(() => localStorage.setItem('arkana-hints-seen', '1'), 25000);
+      setTimeout(() => showHint('deep', hintDeepListen), 12000);
     }
     // Polling ligero porque startTTS es declaración local del script;
     // monitorizamos currentMode hasta que aparezca TTS.
@@ -1993,6 +2081,75 @@
     }, 500);
     // Tope: dejar de polear tras 5 min sin TTS.
     setTimeout(() => clearInterval(_poll), 300000);
+  })();
+
+  // ── FONDO DEGRADADO (QRNG, al azar) ───────────────────────────────────────
+  (function bgGradientFeature() {
+    const BG_KEY = 'arkana-bg';
+    const PALETTE_DARK = [
+      '#0a0a0a','#121212','#181818','#1f1f1f','#262626',
+      '#0d1b2a','#0e2238','#13243f','#1b2a4a','#10243a',
+      '#1a1033','#241447','#2c1a4e','#1d1430','#321d5a'
+    ];
+    const PALETTE_LIGHT = [
+      '#efeae0','#e7e1d4','#dcd6c8','#d2cfc6',
+      '#cfd6e0','#c4cfe2','#d2dbeb',
+      '#d6d0e6','#e0d8ee','#cdd4e8'
+    ];
+    let gradient = '';
+    const isLight = () => document.documentElement.getAttribute('data-theme') === 'light';
+    const pal = () => isLight() ? PALETTE_LIGHT : PALETTE_DARK;
+    const pick = () => { const p = pal(); return p[getQuantumIndex(p.length)]; };
+    function gen() {
+      const angle = getQuantumIndex(24) * 15;
+      const c1 = pick();
+      let c2 = pick(), g = 0;
+      while (c2 === c1 && g++ < 6) c2 = pick();
+      if (getQuantumIndex(10) < 4) return `linear-gradient(${angle}deg, ${c1} 0%, ${pick()} 52%, ${c2} 100%)`;
+      return `linear-gradient(${angle}deg, ${c1} 0%, ${c2} 100%)`;
+    }
+    function paint(v) { const l = document.getElementById('bgLayer'); if (l) l.style.background = v || 'var(--bg)'; }
+    function set(on, regen) {
+      document.documentElement.dataset.bg = on ? 'gradient' : 'solid';
+      const btn = document.getElementById('btnBg');
+      if (btn) {
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.style.color = on ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.45)';
+      }
+      if (on) { if (regen || !gradient) gradient = gen(); paint(gradient); }
+      else paint('');
+      localStorage.setItem(BG_KEY, on ? 'gradient' : 'solid');
+    }
+    document.getElementById('btnBg')?.addEventListener('click', () => {
+      const on = document.documentElement.dataset.bg === 'gradient';
+      set(!on, true);   // off→on con nuevo degradado al azar; on→off
+    });
+    // Cambiar de tema regenera el degradado con la gama análoga.
+    window.__arkanaBgOnThemeChange = () => {
+      if (document.documentElement.dataset.bg === 'gradient') set(true, true);
+    };
+    set(localStorage.getItem(BG_KEY) === 'gradient', true);   // restaurar, fresco
+  })();
+
+  // ── MODALES DONAR / CRÉDITOS ──────────────────────────────────────────────
+  (function arkanaFooterModals() {
+    function openExternal(url) { window.open(url, '_blank', 'noopener'); }
+    function bindModal(triggerId, modalId, closeId) {
+      const trigger = document.getElementById(triggerId);
+      const modal = document.getElementById(modalId);
+      const close = document.getElementById(closeId);
+      if (!trigger || !modal) return;
+      trigger.addEventListener('click', (e) => { e.preventDefault(); modal.classList.add('active'); });
+      close?.addEventListener('click', () => modal.classList.remove('active'));
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+    }
+    bindModal('footDonate', 'donateModal', 'donateClose');
+    bindModal('footCredits', 'creditsModal', 'creditsClose');
+    document.getElementById('donatePaypal')?.addEventListener('click', () => openExternal('https://paypal.me/OscarZoom?locale.x=es_ES&country.x=ES'));
+    document.getElementById('donateStripe')?.addEventListener('click', () => openExternal('https://donate.stripe.com/4gM4gz7fX965avce1g63K00'));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') document.querySelectorAll('.ark-modal.active').forEach(m => m.classList.remove('active'));
+    });
   })();
 
 </script>

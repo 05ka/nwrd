@@ -34,14 +34,23 @@
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html { background: var(--bg); }
     body {
-      background: var(--bg);
+      background: transparent;
       color: var(--white);
       font-family: var(--font-body);
       font-size: 13px;
       line-height: 1.8;
       min-height: 100dvh;
     }
+    /* Fixed background layer — solid var(--bg) by default, random gradient when enabled. */
+    #bgLayer { position: fixed; inset: 0; z-index: -1; background: var(--bg); transition: background 0.6s ease; }
+    /* Gradient mode: surfaces turn translucent so the field skins through, keeping text legible. */
+    html[data-bg="gradient"] .profile-card,
+    html[data-bg="gradient"] .post-card,
+    html[data-bg="gradient"] .feed-state,
+    html[data-bg="gradient"] .skeleton { background: rgba(17,17,17,0.3); }
+    html[data-bg="gradient"] .post-card:hover { background: rgba(30,30,30,0.4); }
 
     body::before {
       content: '';
@@ -211,13 +220,17 @@
   </style>
 </head>
 <body>
+<div id="bgLayer"></div>
 
 <header class="site-header">
   <a href="#" class="back-link" onclick="if(!window.close()) window.location='/index.html'; return false;">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.8)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     <span class="site-header-label">Radio Arkana · Comunidad</span>
   </a>
-  <span class="site-header-label"><span class="live-dot"></span>Bluesky</span>
+  <span style="display:flex;align-items:center;gap:10px;">
+    <button id="btnBg" title="Fondo degradado aleatorio (toca para activar / cambiar)" aria-pressed="false" style="background:transparent;border:none;cursor:pointer;padding:4px;font-size:13px;line-height:1;color:rgba(0,0,0,0.45);transition:color 0.2s;" onmouseover="this.style.color='rgba(0,0,0,0.75)'" onmouseout="if(this.getAttribute('aria-pressed')!=='true')this.style.color='rgba(0,0,0,0.45)'">◐</button>
+    <span class="site-header-label"><span class="live-dot"></span>Bluesky</span>
+  </span>
 </header>
 
 <div class="page">
@@ -484,6 +497,43 @@
   // ── ARRANQUE ────────────────────────────────────────────────────────────────
   loadProfile();
   loadAuthorFeed();
+
+  // ── FONDO DEGRADADO ALEATORIO (◐) ─────────────────────────────────────────────
+  (function bgGradientFeature() {
+    const BG_KEY = 'arkana-com-bg';
+    const PALETTE = [
+      '#0a0a0a','#121212','#181818','#1f1f1f','#262626',
+      '#0d1b2a','#0e2238','#13243f','#1b2a4a','#10243a',
+      '#1a1033','#241447','#2c1a4e','#1d1430','#321d5a'
+    ];
+    const qi = n => (window.getQuantumIndex ? window.getQuantumIndex(n) : Math.floor(Math.random() * n));
+    let gradient = '';
+    const pick = () => PALETTE[qi(PALETTE.length)];
+    function gen() {
+      const angle = qi(24) * 15;
+      const c1 = pick();
+      let c2 = pick(), g = 0;
+      while (c2 === c1 && g++ < 6) c2 = pick();
+      if (qi(10) < 4) return `linear-gradient(${angle}deg, ${c1} 0%, ${pick()} 52%, ${c2} 100%)`;
+      return `linear-gradient(${angle}deg, ${c1} 0%, ${c2} 100%)`;
+    }
+    function paint(v) { const l = document.getElementById('bgLayer'); if (l) l.style.background = v || 'var(--bg)'; }
+    function set(on, regen) {
+      document.documentElement.dataset.bg = on ? 'gradient' : 'solid';
+      const btn = document.getElementById('btnBg');
+      if (btn) {
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.style.color = on ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.45)';
+      }
+      if (on) { if (regen || !gradient) gradient = gen(); paint(gradient); }
+      else paint('');
+      localStorage.setItem(BG_KEY, on ? 'gradient' : 'solid');
+    }
+    document.getElementById('btnBg')?.addEventListener('click', () => {
+      set(document.documentElement.dataset.bg !== 'gradient', true);
+    });
+    set(localStorage.getItem(BG_KEY) === 'gradient', true);
+  })();
 </script>
 </body>
 </html>

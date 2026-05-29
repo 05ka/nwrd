@@ -43,8 +43,16 @@
       --font-body: 'Space Mono', monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { background: var(--bg); color: var(--white); font-family: var(--font-body); min-height: 100dvh; }
-    body { overflow-x: hidden; }
+    html { background: var(--bg); color: var(--white); font-family: var(--font-body); min-height: 100dvh; }
+    body { background: transparent; color: var(--white); font-family: var(--font-body); min-height: 100dvh; overflow-x: hidden; }
+    /* Fixed background layer — solid var(--bg) by default, random gradient when enabled. */
+    #bgLayer { position: fixed; inset: 0; z-index: -1; background: var(--bg); transition: background 0.6s ease; }
+    /* Gradient mode: structural surfaces turn translucent so the field shows through. */
+    html[data-bg="gradient"] .round-bar,
+    html[data-bg="gradient"] .binaural-panel,
+    html[data-bg="gradient"] .size-bar,
+    html[data-bg="gradient"] .board,
+    html[data-bg="gradient"] .foot { background: rgba(0,0,0,0.16); }
     body::before {
       content: ''; position: fixed; inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
@@ -556,6 +564,7 @@
   </style>
 </head>
 <body>
+<div id="bgLayer"></div>
 <div class="wrap">
 
   <!-- ── HEADER ─────────────────────────────────────────── -->
@@ -576,6 +585,9 @@
       <div class="h-toggle" aria-label="Idioma">
         <button class="h-btn active" id="btnES" data-lang="es">ES</button>
         <button class="h-btn" id="btnEN" data-lang="en">EN</button>
+      </div>
+      <div class="h-toggle" aria-label="Fondo">
+        <button class="h-btn" id="btnBg" aria-pressed="false" title="Fondo degradado aleatorio (toca para activar / cambiar)" style="font-size:11px;">◐</button>
       </div>
     </div>
   </header>
@@ -790,9 +802,11 @@
   </div>
 
   <!-- ── FOOTER ─────────────────────────────────────────── -->
-  <div class="foot">
+  <div class="foot" style="flex-wrap:wrap;gap:10px 18px;">
     <a href="/index.html">← <span data-es="Radio" data-en="Radio">Radio</span></a>
     <a href="/guia-arkana.html" target="_blank"><span data-es="Guía" data-en="Guide">Guía</span></a>
+    <a href="#" id="footDonate"><span data-es="❤ Donar" data-en="❤ Donate">❤ Donar</span></a>
+    <a href="#" id="footCredits"><span data-es="Créditos" data-en="Credits">Créditos</span></a>
   </div>
 </div>
 
@@ -847,6 +861,41 @@
     <h3 data-es="Lectura del P-Value" data-en="P-Value reading">Lectura del P-Value</h3>
     <p data-es="P-Value < 0.05 sugiere un resultado significativamente distinto del azar (1/22 ≈ 4.5%). No es prueba de fenómeno psi — solo significa que el patrón es difícil de explicar por suerte sola. Necesitas <strong>muchos rounds</strong> para que el test tenga poder estadístico."
        data-en="P-Value < 0.05 suggests a result significantly different from chance (1/22 ≈ 4.5%). It's not proof of psi — it just means the pattern is hard to explain by luck alone. You need <strong>many rounds</strong> for the test to have statistical power.">P-Value &lt; 0.05 sugiere un resultado significativamente distinto del azar (1/22 ≈ 4.5%). No es prueba de fenómeno psi — solo significa que el patrón es difícil de explicar por suerte sola. Necesitas <strong>muchos rounds</strong> para que el test tenga poder estadístico.</p>
+  </div>
+</div>
+
+<!-- ── DONATE MODAL ─────────────────────────────────────── -->
+<div class="help-modal" id="donateModal" role="dialog" aria-modal="true" aria-labelledby="donateTitle">
+  <div class="help-card">
+    <button class="picker-close" id="donateClose" aria-label="Cerrar" style="float:right">×</button>
+    <h2 id="donateTitle" data-es="Apoya el experimento" data-en="Support the experiment">Apoya el experimento</h2>
+    <p data-es="Radio Arkana es un experimento independiente: sin publicidad, sin cuotas, sin algoritmos que te vigilen. Si la señal te acompaña, puedes sostener el campo con una donación."
+       data-en="Radio Arkana is an independent experiment: no ads, no fees, no algorithms watching you. If the signal accompanies you, you can sustain the field with a donation.">Radio Arkana es un experimento independiente: sin publicidad, sin cuotas, sin algoritmos que te vigilen. Si la señal te acompaña, puedes sostener el campo con una donación.</p>
+    <div class="actions" style="display:flex;gap:10px;margin-top:18px;">
+      <button class="act-btn primary" id="donatePaypal">PayPal</button>
+      <button class="act-btn primary" id="donateStripe">Stripe</button>
+    </div>
+    <p style="margin-top:14px;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gray);text-align:center;"
+       data-es="Gracias · el acto del don sostiene el campo" data-en="Thank you · the act of giving sustains the field">Gracias · el acto del don sostiene el campo</p>
+  </div>
+</div>
+
+<!-- ── CREDITS MODAL ────────────────────────────────────── -->
+<div class="help-modal" id="creditsModal" role="dialog" aria-modal="true" aria-labelledby="creditsTitle">
+  <div class="help-card">
+    <button class="picker-close" id="creditsClose" aria-label="Cerrar" style="float:right">×</button>
+    <h2 id="creditsTitle" data-es="Créditos &amp; licencias" data-en="Credits &amp; licenses">Créditos &amp; licencias</h2>
+    <h3 data-es="Tarot de Marsella" data-en="Marseille Tarot">Tarot de Marsella</h3>
+    <p>CBD Tarot · Dr. Yoav Ben-Dov · <a href="https://www.cbdtarot.com" target="_blank" style="color:var(--red)">cbdtarot.com</a> · CC BY-NC-SA 3.0</p>
+    <h3>Rider-Waite-Smith</h3>
+    <p data-es="Pamela Colman Smith &amp; A.E. Waite (1909) · dominio público" data-en="Pamela Colman Smith &amp; A.E. Waite (1909) · public domain">Pamela Colman Smith &amp; A.E. Waite (1909) · dominio público</p>
+    <h3 data-es="Aleatoriedad cuántica" data-en="Quantum randomness">Aleatoriedad cuántica</h3>
+    <p>ANU Quantum Random Numbers Server</p>
+    <h3 data-es="App &amp; desarrollo" data-en="App &amp; development">App &amp; desarrollo</h3>
+    <p><a href="https://radioarkana.com" target="_blank" style="color:var(--red)">radioarkana.com</a></p>
+    <p style="margin-top:14px;font-size:9px;letter-spacing:0.1em;color:var(--gray);font-style:italic;"
+       data-es="Experimento de entretenimiento. No constituye consejo médico, financiero ni psicológico."
+       data-en="Experimental entertainment. Not medical, financial or psychological advice.">Experimento de entretenimiento. No constituye consejo médico, financiero ni psicológico.</p>
   </div>
 </div>
 
@@ -1653,6 +1702,59 @@ els.btnSubmit.addEventListener('click', () => {
 els.btnHelp.addEventListener('click', openHelp);
 els.helpClose.addEventListener('click', closeHelp);
 els.helpModal.addEventListener('click', e => { if (e.target === els.helpModal) closeHelp(); });
+// ── DONATE / CREDITS ──────────────────────────────────────
+(function footerModals() {
+  function openExternal(url) { window.open(url, '_blank', 'noopener'); }
+  function bind(triggerId, modalId, closeId) {
+    const t = document.getElementById(triggerId), m = document.getElementById(modalId), c = document.getElementById(closeId);
+    if (!t || !m) return;
+    t.addEventListener('click', e => { e.preventDefault(); m.classList.add('open'); });
+    c?.addEventListener('click', () => m.classList.remove('open'));
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+  }
+  bind('footDonate', 'donateModal', 'donateClose');
+  bind('footCredits', 'creditsModal', 'creditsClose');
+  document.getElementById('donatePaypal')?.addEventListener('click', () => openExternal('https://paypal.me/OscarZoom?locale.x=es_ES&country.x=ES'));
+  document.getElementById('donateStripe')?.addEventListener('click', () => openExternal('https://donate.stripe.com/4gM4gz7fX965avce1g63K00'));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.querySelectorAll('.help-modal.open').forEach(m => m.classList.remove('open'));
+  });
+})();
+
+// ── FONDO DEGRADADO (QRNG, al azar) ───────────────────────
+(function bgGradientFeature() {
+  const BG_KEY = 'arkana-rv-bg';
+  const PALETTE = [
+    '#0a0a0a','#121212','#181818','#1f1f1f','#262626',
+    '#0d1b2a','#0e2238','#13243f','#1b2a4a','#10243a',
+    '#1a1033','#241447','#2c1a4e','#1d1430','#321d5a'
+  ];
+  let gradient = '';
+  const pick = () => PALETTE[getQuantumIndex(PALETTE.length)];
+  function gen() {
+    const angle = getQuantumIndex(24) * 15;
+    const c1 = pick();
+    let c2 = pick(), g = 0;
+    while (c2 === c1 && g++ < 6) c2 = pick();
+    if (getQuantumIndex(10) < 4) return `linear-gradient(${angle}deg, ${c1} 0%, ${pick()} 52%, ${c2} 100%)`;
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c2} 100%)`;
+  }
+  function paint(v) { const l = document.getElementById('bgLayer'); if (l) l.style.background = v || 'var(--bg)'; }
+  function set(on, regen) {
+    document.documentElement.dataset.bg = on ? 'gradient' : 'solid';
+    const btn = document.getElementById('btnBg');
+    if (btn) { btn.classList.toggle('active', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+    if (on) { if (regen || !gradient) gradient = gen(); paint(gradient); }
+    else paint('');
+    localStorage.setItem(BG_KEY, on ? 'gradient' : 'solid');
+  }
+  document.getElementById('btnBg')?.addEventListener('click', () => {
+    const on = document.documentElement.dataset.bg === 'gradient';
+    set(!on, true);   // off→on con nuevo degradado al azar; on→off
+  });
+  set(localStorage.getItem(BG_KEY) === 'gradient', true);   // restaurar, fresco
+})();
+
 els.pickerClose.addEventListener('click', closePicker);
 els.pickerModal.addEventListener('click', e => { if (e.target === els.pickerModal) closePicker(); });
 els.endContinue.addEventListener('click', () => { closeEndModal(); roundStart(); });

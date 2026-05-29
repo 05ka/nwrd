@@ -26,7 +26,15 @@
       --font-body: 'Space Mono', monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--white); font-family: var(--font-body); font-size: 13px; line-height: 1.8; }
+    html { background: var(--bg); }
+    body { background: transparent; color: var(--white); font-family: var(--font-body); font-size: 13px; line-height: 1.8; }
+    /* Fixed background layer — solid var(--bg) by default, random gradient when enabled. */
+    #bgLayer { position: fixed; inset: 0; z-index: -1; background: var(--bg); transition: background 0.6s ease; }
+    /* Gradient mode: surfaces turn translucent so the field skins through, keeping text legible. */
+    html[data-bg="gradient"] .knob-card,
+    html[data-bg="gradient"] .status-item,
+    html[data-bg="gradient"] .recipe-card,
+    html[data-bg="gradient"] .qrng-ind { background: rgba(17,17,17,0.3); }
     body::before {
       content: ''; position: fixed; inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
@@ -159,6 +167,7 @@
   </style>
 </head>
 <body>
+<div id="bgLayer"></div>
 
 <header class="site-header">
   <a href="/index.html" style="display:flex; align-items:center; gap:8px; text-decoration:none; opacity:0.6; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'" title="Volver a la radio">
@@ -166,7 +175,7 @@
     <span class="site-header-label" data-es="Radio Arkana · Guía de usuario" data-en="Radio Arkana · User Guide">Radio Arkana · Guía de usuario</span>
   </a>
   <div style="display:flex; align-items:center; gap:16px;">
-    <span class="site-header-label">*</span>
+    <button id="btnBg" title="Fondo degradado aleatorio (toca para activar / cambiar)" aria-pressed="false" style="background:transparent;border:none;cursor:pointer;padding:4px;font-size:13px;line-height:1;color:rgba(0,0,0,0.45);transition:color 0.2s;" onmouseover="this.style.color='rgba(0,0,0,0.75)'" onmouseout="if(this.getAttribute('aria-pressed')!=='true')this.style.color='rgba(0,0,0,0.45)'">◐</button>
     <div class="lang-toggle" role="group" aria-label="Language">
       <button class="lang-btn active" id="btnES" onclick="setLang('es')" aria-pressed="true" title="Español">ES</button>
       <button class="lang-btn" id="btnEN" onclick="setLang('en')" aria-pressed="false" title="English">EN</button>
@@ -1115,6 +1124,43 @@
   }, { threshold: 0.1 });
 
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // ── FONDO DEGRADADO ALEATORIO (◐) ─────────────────────────────────────────────
+  (function bgGradientFeature() {
+    const BG_KEY = 'arkana-guia-bg';
+    const PALETTE = [
+      '#0a0a0a','#121212','#181818','#1f1f1f','#262626',
+      '#0d1b2a','#0e2238','#13243f','#1b2a4a','#10243a',
+      '#1a1033','#241447','#2c1a4e','#1d1430','#321d5a'
+    ];
+    const qi = n => (window.getQuantumIndex ? window.getQuantumIndex(n) : Math.floor(Math.random() * n));
+    let gradient = '';
+    const pick = () => PALETTE[qi(PALETTE.length)];
+    function gen() {
+      const angle = qi(24) * 15;
+      const c1 = pick();
+      let c2 = pick(), g = 0;
+      while (c2 === c1 && g++ < 6) c2 = pick();
+      if (qi(10) < 4) return `linear-gradient(${angle}deg, ${c1} 0%, ${pick()} 52%, ${c2} 100%)`;
+      return `linear-gradient(${angle}deg, ${c1} 0%, ${c2} 100%)`;
+    }
+    function paint(v) { const l = document.getElementById('bgLayer'); if (l) l.style.background = v || 'var(--bg)'; }
+    function set(on, regen) {
+      document.documentElement.dataset.bg = on ? 'gradient' : 'solid';
+      const btn = document.getElementById('btnBg');
+      if (btn) {
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.style.color = on ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.45)';
+      }
+      if (on) { if (regen || !gradient) gradient = gen(); paint(gradient); }
+      else paint('');
+      localStorage.setItem(BG_KEY, on ? 'gradient' : 'solid');
+    }
+    document.getElementById('btnBg')?.addEventListener('click', () => {
+      set(document.documentElement.dataset.bg !== 'gradient', true);
+    });
+    set(localStorage.getItem(BG_KEY) === 'gradient', true);
+  })();
 </script>
 
 </body>
